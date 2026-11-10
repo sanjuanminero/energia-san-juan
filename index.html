@@ -137,7 +137,7 @@ svg .t{fill:var(--tenue)}
     <i class="esq a"></i><i class="esq b"></i><i class="esq c"></i><i class="esq d"></i><i class="mira"></i>
     <div class="titulo hudbox">
       <h1>San Juan genera con agua y sol</h1>
-      <p><span><i class="a"></i>Central hidroeléctrica</span><span><i class="s"></i>Polo solar</span><span><i class="f"></i>Enlace de flujo, esquemático</span><br>El anillo de cada símbolo marca cuánto genera sobre lo instalado.</p>
+      <p><span><i class="a"></i>Central hidroeléctrica</span><span><i class="s"></i>Parque solar</span><span><i class="f"></i>Río San Juan</span><br>El anillo de cada símbolo marca cuánto genera sobre lo instalado.</p>
     </div>
     <div class="capas">
       <div class="grupo" id="capas" role="group" aria-label="Cartografía base">
@@ -173,7 +173,7 @@ svg .t{fill:var(--tenue)}
 
     <div class="bajo">
       <div>
-        <h2>Parques solares por departamento<small id="solNota"></small></h2>
+        <h2>Parques solares por zona<small id="solNota"></small></h2>
         <div id="polos"></div>
         <div class="hora">
           <button id="ahora" aria-pressed="true">Ahora</button>
@@ -190,7 +190,7 @@ svg .t{fill:var(--tenue)}
 
     <details class="pie">
       <summary>Fuentes, fechas de cada dato y cómo se estima la potencia</summary>
-      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. Las posiciones de los símbolos son aproximadas y el enlace de flujo entre diques es esquemático: no sigue el cauce. El caudal erogado por Quebrada de Ullum es el informado por Hidráulica para riego. Cartografía: Esri World Imagery y Esri World Topo Map.</p>
+      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. Las posiciones de diques, aforo, cauce y parques provienen de un relevamiento propio sobre imagen satelital; los nombres de los parques se identificaron con Global Energy Monitor y EPSE. A escala provincial los parques se agrupan por zona y al acercar el mapa se ven uno por uno. El caudal erogado por Quebrada de Ullum es el informado por Hidráulica para riego. Cartografía: Esri World Imagery y Esri World Topo Map.</p>
       <ul id="fuentes"></ul>
     </details>
   </section>
@@ -309,7 +309,7 @@ $("fuentes").innerHTML = D.fuentes.map(f=>`<li><a href="${f[1]}" target="_blank"
 $("polos").innerHTML = D.solar.polos.map(p=>`<div class="polo" title="${p.parques.map(q=>q[0]+" "+q[1]+" MW"+(q[2]?" ("+q[2]+")":"")).join(" · ")}${p.extra?" — "+p.extra:""}">
   <span class="n">${p.nombre}<small>${p.cod}</small></span>
   <span class="pista"><span class="barra" style="width:${p.mw/solMax*70}%"><i id="b_${p.id}" style="width:0"></i></span><span class="pq">${p.parques.map(q=>q[0]).join(", ")}</span></span>
-  <span class="v"><b id="v_${p.id}">0</b> <small>/ ${p.mw} MW</small></span></div>`).join("");
+  <span class="v"><b id="v_${p.id}">0</b> <small>/ ${fmt(p.mw)} MW</small></span></div>`).join("");
 
 /* ---------- mapa ---------- */
 const map = L.map("mapa",{zoomControl:false,zoomSnap:.25,minZoom:6,maxZoom:17});
@@ -331,12 +331,12 @@ function ponerCapa(k){
 }
 document.querySelectorAll("#capas button").forEach(b=>b.addEventListener("click",()=>ponerCapa(b.dataset.c)));
 
-const todos = [...D.diques,...D.solar.polos].map(p=>[p.lat,p.lon]);
+const todos = [...D.diques,...D.solar.polos,{lat:D.otrasHidro[1].lat,lon:D.otrasHidro[1].lon}].map(p=>[p.lat,p.lon]);
 const chico = () => map.getSize().x<520;
 const VISTAS = {
   prov: () => map.fitBounds(L.latLngBounds(todos),chico()?{paddingTopLeft:[70,90],paddingBottomRight:[90,110]}:{paddingTopLeft:[150,185],paddingBottomRight:[150,150]}),
-  diques: () => map.fitBounds(L.latLngBounds(D.diques.map(d=>[d.lat,d.lon]).concat([[D.solar.polos[0].lat,D.solar.polos[0].lon]])),chico()?{padding:[50,120]}:{paddingTopLeft:[170,150],paddingBottomRight:[200,170]}),
-  iglesia: () => map.setView([D.solar.polos[1].lat,D.solar.polos[1].lon],11)
+  diques: () => chico() ? map.setView([-31.42,-68.83],9.75) : map.setView([-31.42,-68.80],10.25),
+  iglesia: () => map.fitBounds(L.latLngBounds(D.solar.parques.filter(q=>q.polo==="iglesia").map(q=>[q.lat,q.lon])),chico()?{padding:[60,120]}:{paddingTopLeft:[120,170],paddingBottomRight:[260,150]})
 };
 document.querySelectorAll("#vistas button").forEach(b=>b.addEventListener("click",()=>VISTAS[b.dataset.v]()));
 VISTAS.prov();
@@ -361,28 +361,36 @@ function reticula(){
 map.on("moveend",reticula); reticula();
 
 
-// enlace de flujo (esquemático): aforo → diques → valle
-const ruta = [[D.rio.aforo.lat,D.rio.aforo.lon],...D.diques.map(d=>[d.lat,d.lon]),[-31.50,-68.56]];
+// cauce del río San Juan desde el aforo km 101 (traza relevada en KML)
+const ruta = D.rio.traza;
 L.polyline(ruta,{color:"#4fd0e6",weight:5,className:"rio-base",interactive:false}).addTo(map);
 const flujo = L.polyline(ruta,{color:"#d6f6fb",weight:3,className:"rio",lineCap:"round",interactive:false}).addTo(map);
 if(flujo.getElement()) flujo.getElement().style.setProperty("--dur",(1.6*61/D.rio.caudal).toFixed(2)+"s");
 
 // símbolos con etiqueta y línea guía
 function activo(p,tipo,dx,dy,r,l1,l2){
-  const der = dx>=0, html = `<div class="act ${tipo}" id="a_${tipo}_${p.id}" style="--f:0">
+  const der = dx>=0, html = `<div class="act ${tipo}" id="a_${tipo}_${p.id}" style="--f:${p.f||0}">
     <svg class="lead" width="1" height="1"><line x1="0" y1="0" x2="${dx}" y2="${dy}"/></svg>
     <div class="sym" style="width:${r*2}px;height:${r*2}px"><i></i></div>
     <div class="tag" style="${der?"left:"+dx+"px":"right:"+(-dx)+"px"};top:${dy-18}px"><b>${l1}</b><span id="t_${tipo}_${p.id}">${l2}</span></div></div>`;
-  return L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",html,iconSize:[0,0]}),interactive:false,keyboard:false}).addTo(map);
+  return L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",html,iconSize:[0,0]}),interactive:false,keyboard:false}).addTo(p.grupo||map);
 }
-const offD = {caracoles:[-64,22],puntanegra:[-40,78],ullum:[54,62]};
-D.diques.forEach((d,i)=>{
-  activo(d,"h",offD[d.id][0],offD[d.id][1],13,`<small>${d.cod}</small>${d.nombre}`,`${fmt(d.cota,2)} msnm · ${fmt(HID[i])} / ${d.mw} MW`+(d.id==="ullum"?`<br>eroga ${fmt(D.rio.erogacionUllum)} m³/s a riego`:""));
-  document.getElementById("a_h_"+d.id).style.setProperty("--f",HID[i]/d.mw);
-});
-const offS = {ullum:[58,-40],iglesia:[52,-30],sarmiento:[50,26],calingasta:[-46,34]};
-D.solar.polos.forEach(p=>activo(p,"s",offS[p.id][0],offS[p.id][1],9+Math.sqrt(p.mw)*.8,`<small>${p.cod}</small>Solar ${p.nombre}`,""));
-activo({id:"aforo",lat:D.rio.aforo.lat,lon:D.rio.aforo.lon},"q",-50,-44,7,"Aforo km 101",fmt(D.rio.caudal,1)+" m³/s · "+fch(D.rio.fecha));
+const gDiqL = L.layerGroup(), gDiqC = L.layerGroup();
+const offD = {caracoles:[-64,34],puntanegra:[-30,84],ullum:[54,62]}, offDC = {caracoles:[10,64],puntanegra:[14,112],ullum:[10,60]};
+D.diques.forEach((d,i)=>[[gDiqL,offD],[gDiqC,offDC]].forEach(([g,o])=>
+  activo({...d,grupo:g,f:HID[i]/d.mw},"h",o[d.id][0],o[d.id][1],13,`<small>${d.cod}</small>${d.nombre}`,`${fmt(d.cota,2)} msnm · ${fmt(HID[i])} / ${d.mw} MW`+(d.id==="ullum"?`<br>eroga ${fmt(D.rio.erogacionUllum)} m³/s a riego`:""))));
+// solar: a escala provincial un símbolo por zona; al acercar, un símbolo por parque
+const gPolos = L.layerGroup(), gParques = L.layerGroup();
+const offS = {ullum:[58,-40],iglesia:[52,-30],sarmiento:[-46,34],calingasta:[-46,34]};
+D.solar.polos.forEach(p=>activo({...p,grupo:gPolos},"s",offS[p.id][0],offS[p.id][1],9+Math.sqrt(p.mw)*.8,`<small>${p.cod}</small>Solar ${p.nombre}`,""));
+D.solar.parques.forEach(q=>activo({...q,grupo:gParques},"s",q.off[0],q.off[1],8+Math.sqrt(q.mw)*.8,q.nombre,""));
+function nivel(){
+  const cerca = map.getZoom()>=9.75;
+  [[gParques,cerca],[gDiqC,cerca],[gPolos,!cerca],[gDiqL,!cerca]].forEach(([g,v])=>v?map.addLayer(g):map.removeLayer(g));
+  if(typeof pintar==="function") pintar();
+}
+activo({id:"aforo",lat:D.rio.aforo.lat,lon:D.rio.aforo.lon},"q",30,-36,7,"Aforo km 101",fmt(D.rio.caudal,1)+" m³/s · "+fch(D.rio.fecha));
+activo({id:"tambolar",lat:D.rio.tambolar.lat,lon:D.rio.tambolar.lon},"h",28,-14,10,"El Tambolar","dique en construcción");
 const cdv = D.otrasHidro[1];
 activo({id:"cdv",lat:cdv.lat,lon:cdv.lon},"h",-44,-8,10,"<small>H-05</small>Cuesta del Viento",cdv.mw+" MW instalados");
 
@@ -394,7 +402,12 @@ function pintar(){
     const f = sol[i], m = p.mw*f; tot += m;
     $("v_"+p.id).textContent = fmt(m); $("b_"+p.id).style.width = (f*100)+"%";
     const a = document.getElementById("a_s_"+p.id); if(a) a.style.setProperty("--f",f.toFixed(3));
-    const t = document.getElementById("t_s_"+p.id); if(t) t.textContent = fmt(m)+" / "+p.mw+" MW · "+fmt(f*100)+" %";
+    const t = document.getElementById("t_s_"+p.id); if(t) t.textContent = fmt(m)+" / "+fmt(p.mw)+" MW · "+fmt(f*100)+" %";
+  });
+  D.solar.parques.forEach(q=>{
+    const f = sol[D.solar.polos.findIndex(p=>p.id===q.polo)];
+    const a = document.getElementById("a_s_"+q.id); if(a) a.style.setProperty("--f",f.toFixed(3));
+    const t = document.getElementById("t_s_"+q.id); if(t) t.innerHTML = fmt(q.mw*f)+" / "+fmt(q.mw)+" MW · "+fmt(f*100)+" %<br>"+q.quien;
   });
   const prov = tot/solIdent*D.solar.mwProvincia;
   $("tSolar").textContent = fmt(prov*anim); $("tHidro").textContent = fmt(HIDTOT*anim);
@@ -425,6 +438,7 @@ function radiacion(){
 }
 radiacion(); setInterval(radiacion,10*60*1000);
 addEventListener("resize",()=>map.invalidateSize());
+map.on("zoomend",nivel); nivel();
 reloj();
 })();
 </script>

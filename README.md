@@ -10,4 +10,4 @@ Qué es medido y qué es estimado:
 - Cotas, volúmenes y caudal: últimos valores publicados por Hidráulica y medios locales (cada cifra muestra su fecha).
 - Potencia hidroeléctrica: estimación física P = ρ·g·Q·H·η con cotas de restitución supuestas; no hay telemetría pública por central.
 - Potencia solar: radiación en vivo de Open-Meteo sobre la potencia instalada identificada por polo; el control de hora usa cielo despejado.
-- Las posiciones de los símbolos son aproximadas y el enlace de flujo entre diques es esquemático.
+- Posiciones de diques, aforo, cauce y parques: KML relevado sobre imagen satelital. Nombres de parques identificados con Global Energy Monitor y EPSE.
