@@ -190,7 +190,7 @@ svg .t{fill:var(--tenue)}
 
     <details class="pie">
       <summary>Fuentes, fechas de cada dato y cómo se estima la potencia</summary>
-      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. Las posiciones de diques, aforo, cauce y parques provienen de un relevamiento propio sobre imagen satelital; los nombres de los parques se identificaron con Global Energy Monitor y EPSE. A escala provincial los parques se agrupan por zona y al acercar el mapa se ven uno por uno. El caudal erogado por Quebrada de Ullum es el informado por Hidráulica para riego. Cartografía: Esri World Imagery y Esri World Topo Map.</p>
+      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. Las posiciones de diques, aforo y parques provienen de un relevamiento propio sobre imagen satelital y el cauce del río es el de OpenStreetMap (© colaboradores de OpenStreetMap); los nombres de los parques se identificaron con Global Energy Monitor y EPSE. A escala provincial los parques se agrupan por zona y al acercar el mapa se ven uno por uno. El caudal erogado por Quebrada de Ullum es el informado por Hidráulica para riego. Cartografía: Esri World Imagery y Esri World Topo Map.</p>
       <ul id="fuentes"></ul>
     </details>
   </section>
@@ -318,9 +318,9 @@ L.control.scale({imperial:false,position:"bottomright",maxWidth:140}).addTo(map)
 const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
 const CAPAS = {
   sat: L.layerGroup([
-    L.tileLayer(ESRI+"World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics"}),
+    L.tileLayer(ESRI+"World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics · Cauce © OpenStreetMap"}),
     L.tileLayer(ESRI+"Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,opacity:.85})]),
-  topo: L.tileLayer(ESRI+"World_Topo_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Topografía © Esri y colaboradores"})
+  topo: L.tileLayer(ESRI+"World_Topo_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Topografía © Esri y colaboradores · Cauce © OpenStreetMap"})
 };
 let capa = null;
 function ponerCapa(k){
@@ -361,8 +361,9 @@ function reticula(){
 map.on("moveend",reticula); reticula();
 
 
-// cauce del río San Juan desde el aforo km 101 (traza relevada en KML)
-const ruta = D.rio.traza;
+// cauce del río San Juan (OpenStreetMap), decodificado desde diferencias
+const ruta = (()=>{ const a = D.rio.trazaOSM.split(",").map(Number), r = []; let la = 0, lo = 0;
+  for(let i=0;i<a.length;i+=2){ la += a[i]; lo += a[i+1]; r.push([la/1e5,lo/1e5]); } return r; })();
 L.polyline(ruta,{color:"#4fd0e6",weight:5,className:"rio-base",interactive:false}).addTo(map);
 const flujo = L.polyline(ruta,{color:"#d6f6fb",weight:3,className:"rio",lineCap:"round",interactive:false}).addTo(map);
 if(flujo.getElement()) flujo.getElement().style.setProperty("--dur",(1.6*61/D.rio.caudal).toFixed(2)+"s");
