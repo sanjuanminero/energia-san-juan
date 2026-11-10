@@ -9,7 +9,10 @@ window.DATOS = {
     caudalPrevio: 46.25,          // 30 oct 2026
     caudal2025: 23.451,           // misma fecha 2025
     proyeccionNoviembre: 80,      // m3/s, Hidráulica (Ginestar)
-    erogacionUllum: 44,           // m3/s que entrega Ullum a riego
+    erogacionUllum: 44,           // m3/s que eroga Quebrada de Ullum (1 nov 2026)
+    erogacion2025: 40,            // misma fecha 2025
+    riegoTotal: 47.071,           // m3/s derivados a riego
+    coef: 0.400,                  // L/s por ha (antes 0,340)
     fuente: "Dpto. de Hidráulica, vía Tiempo de San Juan (2 nov 2026)",
     aforo: { lat: -31.47, lon: -69.12 },   // posición aproximada de la estación km 101
     pronosticoUNSJ: [             // caudal medio mensual, UNSJ (Dölling), ciclo 2026-27
@@ -30,7 +33,7 @@ window.DATOS = {
     { id: "ullum", cod: "H-03", nombre: "Quebrada de Ullum", lat: -31.4735, lon: -68.6525,
       cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768,
       vol: 156, volMax: 312, pct: 50, fechaVol: "2026-09-07",
-      mw: 44, tail: 718, nota: "Eroga 44 m³/s a riego" }
+      mw: 44, tail: 718, nota: "" }
   ],
   reservaDisponible: 872.43,       // hm3 libres hasta nivel máximo ordinario (25 oct 2026)
   otrasHidro: [
