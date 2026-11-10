@@ -1,4 +1,4 @@
-// Coordenadas de diques, aforo, cauce y parques: KML relevado por Santiago Azcona (10 nov 2026).
+// Coordenadas de diques, aforo, cauce y parques: relevamiento propio sobre imagen satelital (10 nov 2026).
 // Datos del tablero. Editar este archivo para actualizar cifras; cada valor lleva su fecha y fuente.
 window.DATOS = {
   actualizado: "2026-11-09",
@@ -62,7 +62,7 @@ window.DATOS = {
       { id: "calingasta", cod: "S-04", nombre: "Tocota", lat: -30.8164, lon: -69.4717, mw: 60,
         parques: [["Tocota III", 60, "Genneia"]], extra: "" }
     ],
-    // parques: símbolos individuales al acercar el mapa. Posiciones del KML de Santiago Azcona (10 nov 2026),
+    // parques: símbolos individuales al acercar el mapa. Posiciones de relevamiento propio (10 nov 2026),
     // salvo Tocota III (Global Energy Monitor). Nombres identificados contra Global Energy Monitor y EPSE.
     parques: [
       { id: "ullum123", polo: "ullum", nombre: "Ullum I, II y III", mw: 82, quien: "Genneia", lat: -31.33419, lon: -68.67033, off: [54,-30] },
