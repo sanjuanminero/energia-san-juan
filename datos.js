@@ -1,3 +1,4 @@
+// Las coordenadas son aproximadas (ubicadas a mano, sin relevamiento); ajustar acá si hace falta.
 // Datos del tablero. Editar este archivo para actualizar cifras; cada valor lleva su fecha y fuente.
 window.DATOS = {
   actualizado: "2026-11-09",
@@ -10,6 +11,7 @@ window.DATOS = {
     proyeccionNoviembre: 80,      // m3/s, Hidráulica (Ginestar)
     erogacionUllum: 44,           // m3/s que entrega Ullum a riego
     fuente: "Dpto. de Hidráulica, vía Tiempo de San Juan (2 nov 2026)",
+    aforo: { lat: -31.47, lon: -69.12 },   // posición aproximada de la estación km 101
     pronosticoUNSJ: [             // caudal medio mensual, UNSJ (Dölling), ciclo 2026-27
       ["oct", 51.1], ["nov", 70.6], ["dic", 78.3], ["ene", 75.5], ["feb", 63.3], ["mar", 49.5]
     ]
@@ -17,15 +19,15 @@ window.DATOS = {
 
   // tail = cota de restitución supuesta para estimar el salto (no es dato oficial)
   diques: [
-    { id: "caracoles", nombre: "Los Caracoles", lat: -31.527, lon: -68.975,
+    { id: "caracoles", cod: "H-01", nombre: "Los Caracoles", lat: -31.527, lon: -68.975,
       cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1100,
       vol: 250, volMax: 545, pct: 46, fechaVol: "2026-09-07",
       mw: 125, tail: 945, nota: "Subió 47 cm entre el 30 oct y el 1 nov" },
-    { id: "puntanegra", nombre: "Punta Negra", lat: -31.52, lon: -68.82,
+    { id: "puntanegra", cod: "H-02", nombre: "Punta Negra", lat: -31.523, lon: -68.807,
       cota: 924.11, fechaCota: "2026-10-03", cotaMin: 920, cotaMax: 950,
       vol: 230, volMax: 500, pct: 46, fechaVol: "2026-09-07",
       mw: 65, tail: 863, nota: "" },
-    { id: "ullum", nombre: "Quebrada de Ullum", lat: -31.47, lon: -68.645,
+    { id: "ullum", cod: "H-03", nombre: "Quebrada de Ullum", lat: -31.4735, lon: -68.6525,
       cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768,
       vol: 156, volMax: 312, pct: 50, fechaVol: "2026-09-07",
       mw: 44, tail: 718, nota: "Eroga 44 m³/s a riego" }
@@ -40,16 +42,16 @@ window.DATOS = {
     parquesOperativos: 24,         // 13 oct 2026
     mwProvincia: 676,              // 547,4 MW (dic 2024, 21 parques) + San Juan Sur 129 MW
     polos: [
-      { id: "ullum", nombre: "Ullum", lat: -31.38, lon: -68.74, mw: 160,
+      { id: "ullum", cod: "S-01", nombre: "Ullum", lat: -31.37, lon: -68.67, mw: 160,
         parques: [["Ullum I, II y III", 82, "Genneia"], ["Sierras de Ullum", 78, "Genneia"]],
         extra: "Ullum Alfa (EPSE, 50 MW) por inaugurar" },
-      { id: "iglesia", nombre: "Iglesia", lat: -30.40, lon: -69.20, mw: 297,
+      { id: "iglesia", cod: "S-02", nombre: "Iglesia", lat: -30.26, lon: -69.11, mw: 297,
         parques: [["Guañizuil IIA", 117, "Central Puerto"], ["Zonda I", 100, "YPF Luz"], ["Iglesia–Estancia Guañizuil", 80, ""]],
         extra: "Parque comunitario EPSE 10 MW + 30 MWh en baterías, en licitación" },
-      { id: "sarmiento", nombre: "Sarmiento", lat: -32.08, lon: -68.60, mw: 129,
+      { id: "sarmiento", cod: "S-03", nombre: "Sarmiento", lat: -32.08, lon: -68.60, mw: 129,
         parques: [["San Juan Sur", 129, "Genneia"]],
         extra: "Inaugurado en octubre de 2026, el mayor de la provincia" },
-      { id: "calingasta", nombre: "Calingasta", lat: -30.72, lon: -69.42, mw: 60,
+      { id: "calingasta", cod: "S-04", nombre: "Calingasta", lat: -30.67, lon: -69.47, mw: 60,
         parques: [["Tocota III", 60, "Genneia"]], extra: "" }
     ]
   },

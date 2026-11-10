@@ -4,60 +4,107 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Energía San Juan — agua y sol en vivo</title>
-<meta name="description" content="Tablero de generación renovable de San Juan: cotas de los diques, caudal del río San Juan, potencia hidroeléctrica y parques solares.">
+<meta name="description" content="Tablero de generación renovable de San Juan: cotas de los diques, caudal del río San Juan, potencia hidroeléctrica y parques solares sobre cartografía satelital.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600&family=Saira+Condensed:wght@300;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600&family=Saira+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/leaflet.css">
 <style>
 :root{
-  --fondo:#0f1f29; --tierra:#172f3b; --curva:#33505d; --linea:#27414e;
-  --agua:#55c8e0; --agua2:#1f7f98; --sol:#ffb627; --sol2:#b5760a;
-  --texto:#e9e4d4; --tenue:#8fa5ad; --panel:#132833;
+  --fondo:#0e1614; --tierra:#1a2622; --linea:#2c3d37; --hud:#a9c39a;
+  --agua:#4fd0e6; --agua2:#1c7d94; --sol:#ffb627; --sol2:#a86c08;
+  --texto:#e3e6d6; --tenue:#8c9c93;
   --num:"Saira Condensed","Arial Narrow",sans-serif; --txt:"Saira","Segoe UI",sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--fondo);color:var(--texto);font-family:var(--txt);font-size:15px;line-height:1.4}
 a{color:var(--agua)}
+button{font:inherit}
 :focus-visible{outline:2px solid var(--sol);outline-offset:2px}
-.slide{display:grid;grid-template-columns:minmax(320px,41fr) 59fr;height:100vh;min-height:680px}
-.mapa{position:relative;border-right:1px solid var(--linea);overflow:hidden}
-.mapa canvas{position:absolute;inset:0;width:100%;height:100%}
-.mapa .titulo{position:absolute;left:22px;top:18px;right:22px;pointer-events:none}
-h1{font-family:var(--num);font-weight:700;font-size:clamp(30px,3.4vw,54px);line-height:.92;margin:0;letter-spacing:.005em}
-h1 span{display:block;font-weight:300;color:var(--tenue);font-size:.46em;line-height:1.3;margin-top:6px}
-.leyenda{position:absolute;left:22px;bottom:16px;font-size:12px;color:var(--tenue);display:grid;gap:3px}
-.leyenda i{display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:-1px}
-.leyenda .a{background:var(--agua);transform:rotate(45deg) scale(.8)}
-.leyenda .s{background:var(--sol);border-radius:50%}
-.leyenda .r{height:2px;background:var(--agua);vertical-align:3px;width:14px}
+.slide{display:grid;grid-template-columns:minmax(340px,43fr) 57fr;height:100vh;min-height:700px}
 
-.datos{display:grid;grid-template-rows:auto 1fr auto auto;min-height:0;padding:18px 24px 12px;gap:14px}
-.tope{display:grid;grid-template-columns:1fr 1fr auto;gap:22px;align-items:end;border-bottom:1px solid var(--linea);padding-bottom:12px}
+/* ---------- mapa ---------- */
+.mapa{position:relative;border-right:1px solid var(--linea);overflow:hidden;background:#0a100f}
+#mapa{position:absolute;inset:0;background:#0a100f;font-family:var(--num)}
+.leaflet-tile-pane.sat{filter:brightness(.74) saturate(.78) contrast(1.08)}
+.leaflet-tile-pane.claro{filter:brightness(.8) saturate(.7)}
+.hudbox{background:rgba(10,16,15,.86);border:1px solid var(--linea);backdrop-filter:blur(3px)}
+.titulo{position:absolute;z-index:500;left:12px;top:12px;padding:10px 14px 9px;max-width:calc(100% - 24px);pointer-events:none}
+h1{font-family:var(--num);font-weight:700;font-size:clamp(24px,2.3vw,36px);line-height:.95;margin:0}
+.titulo p{margin:5px 0 0;font-size:12px;color:var(--tenue)}
+.titulo p span{margin-right:14px;white-space:nowrap}
+.capas{position:absolute;z-index:500;left:12px;bottom:92px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.grupo{display:flex}
+.grupo button{background:rgba(10,16,15,.86);color:var(--texto);border:1px solid var(--linea);padding:4px 10px;font-family:var(--num);font-size:14px;cursor:pointer;margin-left:-1px}
+.grupo button[aria-pressed=true]{background:var(--hud);color:#0e1614;border-color:var(--hud)}
+.coord{position:absolute;z-index:500;left:12px;bottom:12px;padding:6px 12px;font-family:var(--num);font-size:14px;font-variant-numeric:tabular-nums;display:grid;gap:1px;color:var(--hud);pointer-events:none}
+.coord b{font-weight:500;color:var(--texto)}
+.titulo i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.titulo .a{background:var(--agua);transform:rotate(45deg) scale(.8)} .titulo .s{background:var(--sol);border-radius:50%}
+.titulo .f{height:0;border-top:2px dashed var(--agua);width:14px;vertical-align:3px}
+.mira{position:absolute;z-index:450;left:50%;top:50%;width:26px;height:26px;margin:-13px;pointer-events:none;opacity:.7;
+  background:linear-gradient(var(--hud),var(--hud)) center/1px 100% no-repeat,linear-gradient(var(--hud),var(--hud)) center/100% 1px no-repeat}
+.esq{position:absolute;z-index:450;width:18px;height:18px;border:2px solid var(--hud);pointer-events:none;opacity:.8}
+.esq.a{left:5px;top:5px;border-right:0;border-bottom:0}.esq.b{right:5px;top:5px;border-left:0;border-bottom:0}
+.esq.c{left:5px;bottom:5px;border-right:0;border-top:0}.esq.d{right:5px;bottom:5px;border-left:0;border-top:0}
+.leaflet-container .leaflet-control-attribution{background:rgba(10,16,15,.75);color:var(--tenue);font-size:10px}
+.leaflet-control-attribution a{color:var(--tenue)}
+.leaflet-bar a,.leaflet-bar a:hover{background:rgba(10,16,15,.9);color:var(--texto);border-color:var(--linea)}
+.leaflet-control-scale-line{background:rgba(10,16,15,.75);color:var(--texto);border-color:var(--hud);font-family:var(--num);font-size:12px}
+.grat{font-family:var(--num);font-size:12px;color:var(--hud);white-space:nowrap;text-shadow:0 0 3px #000,0 0 3px #000}
+.rio{stroke-dasharray:2 12;animation:fluye var(--dur,1.6s) linear infinite}
+.rio-base{opacity:.45}
+@keyframes fluye{to{stroke-dashoffset:-14}}
+
+/* símbolos */
+.act{position:relative;width:0;height:0}
+.act .lead{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.act .lead line{stroke:var(--texto);stroke-width:1;opacity:.75}
+.act .sym{position:absolute;transform:translate(-50%,-50%);border-radius:50%;
+  background:conic-gradient(var(--c) calc(var(--f)*360deg),rgba(10,16,15,.85) 0);padding:4px;box-shadow:0 0 0 1px var(--c),0 0 calc(var(--f)*26px) calc(var(--f)*9px) var(--g)}
+.act .sym i{width:100%;height:100%;border-radius:50%;background:#0e1614;display:grid;place-items:center}
+.act.h{--c:var(--agua);--g:rgba(79,208,230,.55)} .act.s{--c:var(--sol);--g:rgba(255,182,39,.6)} .act.q{--c:var(--agua)}
+.act.h .sym i::after{content:"";width:9px;height:9px;background:var(--agua);transform:rotate(45deg)}
+.act.s .sym i::after{content:"";width:46%;height:46%;border-radius:50%;background:var(--sol);opacity:calc(.25 + var(--f)*.75)}
+.act .tag{position:absolute;white-space:nowrap;background:rgba(10,16,15,.9);border-left:3px solid var(--c);padding:2px 8px 3px;font-family:var(--num);line-height:1.15}
+.act .tag b{font-size:14.5px;font-weight:600;color:var(--texto);display:block}
+.act .tag b small{font-weight:400;color:var(--hud);margin-right:5px;font-size:12px}
+.act .tag span{display:block;font-size:13px;color:var(--c);font-variant-numeric:tabular-nums}
+.act.q .sym{background:none;box-shadow:none;border:2px solid var(--agua);padding:0}
+.act.q .sym i{background:none}
+
+/* ---------- panel ---------- */
+.datos{display:grid;grid-template-rows:auto 1fr auto auto;min-height:0;padding:16px 24px 10px;gap:12px}
+.tope{display:grid;grid-template-columns:1fr 1fr auto;gap:26px;align-items:end;border-bottom:1px solid var(--linea);padding-bottom:12px}
 .total small{display:block;color:var(--tenue);font-size:13px}
-.total b{font-family:var(--num);font-weight:600;font-size:clamp(44px,5.2vw,82px);line-height:.9;display:inline-block}
-.total b+em{font-style:normal;font-family:var(--num);font-size:22px;color:var(--tenue);margin-left:4px}
-.total.h b{color:var(--agua)} .total.s b{color:var(--sol)}
-.total p{margin:4px 0 0;font-size:12.5px;color:var(--tenue)}
+.total b{font-family:var(--num);font-weight:600;font-size:clamp(42px,4.8vw,76px);line-height:.9;display:inline-block;font-variant-numeric:tabular-nums}
+.total b+em{font-style:normal;font-family:var(--num);font-size:20px;color:var(--tenue);margin-left:4px}
+.total.h{--c:var(--agua)} .total.s{--c:var(--sol)} .total b{color:var(--c)}
+.total p{margin:3px 0 0;font-size:12.5px;color:var(--tenue)}
+.medidor{height:8px;background:var(--tierra);margin-top:6px;position:relative}
+.medidor i{position:absolute;inset:0 auto 0 0;background:var(--c);transition:width .5s}
 .reloj{text-align:right;font-family:var(--num)}
-.reloj b{font-size:34px;font-weight:500;display:block;line-height:1}
+.reloj b{font-size:34px;font-weight:500;display:block;line-height:1;font-variant-numeric:tabular-nums}
 .reloj span{color:var(--tenue);font-size:14px}
 .est{border-bottom:1px dashed currentColor;cursor:help}
-
+h2{font-family:var(--num);font-weight:500;font-size:19px;margin:0 0 4px}
+h2 small{font-family:var(--txt);font-size:12.5px;color:var(--tenue);font-weight:400;margin-left:8px}
 .cascada{min-height:0;display:flex;flex-direction:column}
-.cascada h2,.bajo h2{font-family:var(--num);font-weight:500;font-size:19px;margin:0 0 4px;color:var(--texto)}
-.cascada h2 small,.bajo h2 small{font-family:var(--txt);font-size:12.5px;color:var(--tenue);font-weight:400;margin-left:8px}
 .cascada svg{flex:1;min-height:0;width:100%}
-.bajo{display:grid;grid-template-columns:1.25fr 1fr;gap:26px;border-top:1px solid var(--linea);padding-top:10px}
-.polo{display:grid;grid-template-columns:86px 1fr 104px;gap:10px;align-items:center;font-size:13px;padding:3px 0}
-.polo .n{font-family:var(--num);font-size:17px;font-weight:500}
-.polo .barra{height:14px;background:var(--tierra);position:relative;border-radius:2px;overflow:hidden}
-.polo .barra i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--sol2),var(--sol));transition:width .6s}
-.polo .barra span{position:absolute;left:6px;top:-2px;font-size:11px;color:var(--texto);white-space:nowrap;mix-blend-mode:screen}
-.polo .v{font-family:var(--num);font-size:17px;text-align:right;white-space:nowrap}
+.chorro{animation:fluye 1s linear infinite}
+.bajo{display:grid;grid-template-columns:1.3fr 1fr;gap:26px;border-top:1px solid var(--linea);padding-top:10px}
+.polo{display:grid;grid-template-columns:92px 1fr 108px;gap:10px;align-items:center;padding:2px 0}
+.polo .n{font-family:var(--num);font-size:17px;font-weight:500;line-height:1.05}
+.polo .n small{display:block;color:var(--hud);font-size:11.5px;font-weight:400}
+.polo .pista{display:flex;align-items:center;gap:8px;min-width:0}
+.polo .barra{height:14px;background:var(--tierra);box-shadow:inset 0 0 0 1px var(--sol2);position:relative;flex:none}
+.polo .barra i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--sol2),var(--sol));transition:width .5s}
+.polo .pq{font-size:11.5px;color:var(--tenue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.polo .v{font-family:var(--num);font-size:17px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .polo .v small{color:var(--tenue);font-size:12px}
-.hora{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12.5px;color:var(--tenue)}
+.hora{display:flex;align-items:center;gap:10px;margin-top:5px;font-size:12.5px;color:var(--tenue)}
 .hora input{flex:1;accent-color:var(--sol)}
-.hora button{font:inherit;color:var(--fondo);background:var(--sol);border:0;border-radius:3px;padding:3px 10px;cursor:pointer}
+.hora button{color:var(--fondo);background:var(--sol);border:0;padding:3px 10px;cursor:pointer}
 .hora button[aria-pressed=true]{background:var(--tierra);color:var(--tenue);cursor:default}
 #rio{width:100%;height:118px;display:block}
 .pie{font-size:12px;color:var(--tenue)}
@@ -68,27 +115,42 @@ svg .t{fill:var(--tenue)}
 
 @media (max-width:980px){
   .slide{grid-template-columns:1fr;height:auto}
-  .mapa{height:135vw;max-height:760px;border-right:0;border-bottom:1px solid var(--linea)}
+  .mapa{height:125vw;max-height:720px;border-right:0;border-bottom:1px solid var(--linea)}
+  .titulo p{display:none}
   .datos{padding:16px}
   .tope{grid-template-columns:1fr 1fr}.reloj{grid-column:1/-1;text-align:left;display:flex;gap:12px;align-items:baseline}
-  .cascada{overflow-x:auto}.cascada svg{height:300px;flex:none;min-width:700px}
-  h1{font-size:30px}.mapa .titulo{left:16px;top:14px}
+  .cascada{overflow-x:auto}.cascada svg{height:300px;flex:none;min-width:720px}
   .bajo{grid-template-columns:1fr}.pie ul{columns:1}
+  .polo{grid-template-columns:80px 1fr 96px}.polo .pq{display:none}
 }
-@media (prefers-reduced-motion:reduce){.polo .barra i{transition:none}}
+@media (max-width:600px){
+  .mapa{height:140vw}.coord{display:none}.capas{bottom:22px}
+  .act .tag span{display:none}.act .tag b{font-size:12.5px}.act .tag b small{display:none}
+}
+@media (prefers-reduced-motion:reduce){.rio,.chorro{animation:none}.polo .barra i,.medidor i{transition:none}}
 </style>
 </head>
 <body>
 <main class="slide">
   <section class="mapa" aria-label="Mapa de generación renovable de San Juan">
-    <canvas id="mapa"></canvas>
-    <div class="titulo">
-      <h1>San Juan genera con agua y sol<span>Diques del río San Juan y polos solares, potencia renovable en funcionamiento</span></h1>
+    <div id="mapa"></div>
+    <i class="esq a"></i><i class="esq b"></i><i class="esq c"></i><i class="esq d"></i><i class="mira"></i>
+    <div class="titulo hudbox">
+      <h1>San Juan genera con agua y sol</h1>
+      <p><span><i class="a"></i>Central hidroeléctrica</span><span><i class="s"></i>Polo solar</span><span><i class="f"></i>Enlace de flujo, esquemático</span><br>El anillo de cada símbolo marca cuánto genera sobre lo instalado.</p>
     </div>
-    <div class="leyenda">
-      <span><i class="a"></i>Dique con central hidroeléctrica</span>
-      <span><i class="s"></i>Polo solar, tamaño según MW instalados</span>
-      <span><i class="r"></i>Río San Juan, flujo según caudal medido</span>
+    <div class="capas">
+      <div class="grupo" id="capas" role="group" aria-label="Cartografía base">
+        <button data-c="sat" aria-pressed="true">Satélite</button><button data-c="topo" aria-pressed="false">Topográfico</button><button data-c="osm" aria-pressed="false">OpenStreetMap</button>
+      </div>
+      <div class="grupo" id="vistas" role="group" aria-label="Encuadre">
+        <button data-v="prov">Provincia</button><button data-v="diques">Diques</button><button data-v="iglesia">Iglesia</button>
+      </div>
+    </div>
+    <div class="coord hudbox">
+      <span><b id="cLL">—</b></span>
+      <span>UTM 19S <b id="cUTM">—</b></span>
+      <span>WGS 84 · zoom <b id="cZ">—</b></span>
     </div>
   </section>
 
@@ -97,11 +159,13 @@ svg .t{fill:var(--tenue)}
       <div class="total h">
         <small>Hidroeléctrica ahora <span class="est" title="No hay telemetría pública por central. Se calcula con P = ρ·g·Q·H·η usando el último caudal y las cotas publicadas, suponiendo que se turbina todo el caudal.">estimada</span></small>
         <b id="tHidro">0</b><em>MW</em>
-        <p>284 MW instalados en 5 centrales</p>
+        <div class="medidor"><i id="mHidro" style="width:0"></i></div>
+        <p id="hidInst"></p>
       </div>
       <div class="total s">
-        <small>Solar ahora <span class="est" id="solEstTip" title="Se calcula con la radiación solar del momento sobre cada polo y la potencia instalada.">estimada</span></small>
+        <small>Solar ahora <span class="est" title="Se calcula con la radiación solar del momento sobre cada polo y la potencia instalada.">estimada</span></small>
         <b id="tSolar">0</b><em>MW</em>
+        <div class="medidor"><i id="mSolar" style="width:0"></i></div>
         <p id="solInst"></p>
       </div>
       <div class="reloj"><b id="hora">--:--</b><span id="fecha"></span></div>
@@ -109,7 +173,7 @@ svg .t{fill:var(--tenue)}
 
     <div class="cascada">
       <h2>Los tres diques, río abajo<small id="reserva"></small></h2>
-      <svg id="cascada" viewBox="0 0 850 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Cotas y potencia de Los Caracoles, Punta Negra y Quebrada de Ullum"></svg>
+      <svg id="cascada" viewBox="0 0 850 310" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Cotas y potencia de Los Caracoles, Punta Negra y Quebrada de Ullum"></svg>
     </div>
 
     <div class="bajo">
@@ -130,12 +194,13 @@ svg .t{fill:var(--tenue)}
 
     <details class="pie">
       <summary>Fuentes, fechas de cada dato y cómo se estima la potencia</summary>
-      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. El mapa es esquemático.</p>
+      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. Las posiciones de los símbolos son aproximadas y el enlace de flujo entre diques es esquemático: no sigue el cauce. Cartografía: Esri World Imagery, Esri World Topo Map y OpenStreetMap.</p>
       <ul id="fuentes"></ul>
     </details>
   </section>
 </main>
 
+<script src="vendor/leaflet.js"></script>
 <script src="datos.js"></script>
 <script>
 (function(){
@@ -144,25 +209,24 @@ const fmt = (n,d=0) => n.toLocaleString("es-AR",{minimumFractionDigits:d,maximum
 const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 const fch = s => { const [y,m,d] = s.split("-").map(Number); return d+" "+MES[m-1]; };
 const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
+const rad = Math.PI/180;
 
 /* ---------- sol ---------- */
 function sunElev(date, lat, lon){
-  const rad = Math.PI/180, d = (date - Date.UTC(2000,0,1,12))/864e5;
+  const d = (date - Date.UTC(2000,0,1,12))/864e5;
   const g = (357.529+0.98560028*d)*rad, q = 280.459+0.98564736*d;
   const L = (q+1.915*Math.sin(g)+0.020*Math.sin(2*g))*rad, e = (23.439-0.00000036*d)*rad;
   const ra = Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L)), dec = Math.asin(Math.sin(e)*Math.sin(L));
-  const gmst = (18.697374558+24.06570982441908*d)%24, lst = (gmst*15+lon)*rad;
-  const ha = lst-ra;
+  const gmst = (18.697374558+24.06570982441908*d)%24, ha = (gmst*15+lon)*rad-ra;
   return Math.asin(Math.sin(lat*rad)*Math.sin(dec)+Math.cos(lat*rad)*Math.cos(dec)*Math.cos(ha))/rad;
 }
-const ghiClear = el => el<=0 ? 0 : 1098*Math.sin(el*Math.PI/180)*Math.exp(-0.057/Math.sin(el*Math.PI/180));
+const ghiClear = el => el<=0 ? 0 : 1098*Math.sin(el*rad)*Math.exp(-0.057/Math.sin(el*rad));
 // fracción de la potencia instalada: seguidores a un eje (+25 %) y rendimiento 0,85
 const fracSolar = ghi => Math.min(1, ghi*1.25/1000)*0.85;
 
 /* ---------- estado ---------- */
-let simMin = null;               // minutos del día simulados; null = ahora
-let liveGHI = null;              // radiación medida por polo (W/m2)
-const TZ = -3;                   // San Juan, UTC-3
+let simMin = null, liveGHI = null;
+const TZ = -3;
 function tiempo(){
   const now = new Date();
   if(simMin===null) return now;
@@ -174,51 +238,48 @@ function solarAhora(){
   return D.solar.polos.map((p,i)=>{
     const el = sunElev(t,p.lat,p.lon);
     const ghi = (simMin===null && liveGHI && liveGHI[i]!=null) ? liveGHI[i] : ghiClear(el);
-    return {el, f: fracSolar(ghi)};
+    return fracSolar(ghi);
   });
 }
-function hidro(){
-  return D.diques.map(d=>{
-    const qDis = d.mw*1000/(9.81*(d.cotaMax-d.tail)*0.9);
-    const q = Math.min(d.id==="ullum" ? D.rio.erogacionUllum : D.rio.caudal, qDis);
-    return Math.min(d.mw, 9.81*q*Math.max(0,d.cota-d.tail)*0.9/1000);
-  });
-}
-const HID = hidro(), HIDTOT = HID.reduce((a,b)=>a+b,0);
+const HID = D.diques.map(d=>{
+  const qDis = d.mw*1000/(9.81*(d.cotaMax-d.tail)*0.9);
+  const q = Math.min(d.id==="ullum" ? D.rio.erogacionUllum : D.rio.caudal, qDis);
+  return Math.min(d.mw, 9.81*q*Math.max(0,d.cota-d.tail)*0.9/1000);
+});
+const HIDTOT = HID.reduce((a,b)=>a+b,0);
+const hidInst = D.diques.reduce((a,d)=>a+d.mw,0)+D.otrasHidro.reduce((a,d)=>a+d.mw,0);
+const solIdent = D.solar.polos.reduce((a,p)=>a+p.mw,0);
+const solMax = Math.max(...D.solar.polos.map(p=>p.mw));
 
 /* ---------- textos fijos ---------- */
-const hidInst = D.diques.reduce((a,d)=>a+d.mw,0)+D.otrasHidro.reduce((a,d)=>a+d.mw,0);
-document.querySelector(".total.h p").textContent = fmt(hidInst)+" MW instalados en 5 centrales";
-$("solInst").textContent = "Más de "+fmt(D.solar.mwProvincia)+" MW en "+D.solar.parquesOperativos+" parques operativos";
+$("hidInst").textContent = fmt(HIDTOT/hidInst*100)+" % de "+fmt(hidInst)+" MW instalados en 5 centrales";
+$("mHidro").style.width = (HIDTOT/hidInst*100)+"%";
 $("reserva").textContent = "Operan cerca de la cota mínima: quedan "+fmt(D.reservaDisponible,2)+" hm³ libres para la crecida";
-$("rioNota").textContent = "barras: pronóstico UNSJ, línea: aforo km 101";
+$("rioNota").textContent = "pronóstico UNSJ y aforo km 101";
 $("fuentes").innerHTML = D.fuentes.map(f=>`<li><a href="${f[1]}" target="_blank" rel="noopener">${f[0]}</a></li>`).join("");
 
 /* ---------- cascada de diques ---------- */
 (function(){
-  const W=760, bw=158, gap=118, x0=10, bh=150;
-  let s = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#55c8e0"/><stop offset="1" stop-color="#1f7f98"/></linearGradient>
-  <clipPath id="cl"><rect x="0" y="0" width="${W}" height="300"/></clipPath></defs>`;
+  const bw=158, gap=118, x0=10, bh=150, mwMax = Math.max(...D.diques.map(d=>d.mw)), barW = gap-22;
+  let s = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd0e6"/><stop offset="1" stop-color="#1c7d94"/></linearGradient></defs>`;
   D.diques.forEach((d,i)=>{
     const x = x0+i*(bw+gap), y = 34+i*32, fill = d.pct/100, wy = y+bh*(1-fill);
-    // vaso
-    s += `<path d="M${x},${y} v${bh} h${bw} v${-bh}" fill="none" stroke="#33505d" stroke-width="1.5"/>`;
+    s += `<path d="M${x},${y} v${bh} h${bw} v${-bh}" fill="none" stroke="#3a4d46" stroke-width="1.5"/>`;
     s += `<rect x="${x+1}" y="${wy}" width="${bw-2}" height="${bh*fill-1}" fill="url(#ga)" opacity=".9"/>`;
-    s += `<path class="ola" data-x="${x+1}" data-y="${wy}" data-w="${bw-2}" fill="#8fe3f3" opacity=".55"/>`;
-    // presa
-    s += `<path d="M${x+bw},${y-6} l14,0 l16,${bh+6} h-30 z" fill="#27414e"/>`;
-    // marcas de cota
-    s += `<line x1="${x-6}" x2="${x+8}" y1="${y}" y2="${y}" stroke="#8fa5ad"/><text x="${x+12}" y="${y+4}" font-size="12" class="t">máx ${fmt(d.cotaMax)} msnm</text>`;
-    s += `<text x="${x+bw/2}" y="${wy+30}" font-size="30" font-weight="600" text-anchor="middle" fill="#0f1f29">${fmt(d.cota,2)}</text>`;
-    s += `<text x="${x+bw/2}" y="${wy+47}" font-size="12.5" text-anchor="middle" fill="#0f1f29">msnm · ${fch(d.fechaCota)} · mín ${fmt(d.cotaMin)}</text>`;
-    s += `<text x="${x}" y="${y-12}" font-size="19" font-weight="600">${d.nombre}</text>`;
+    s += `<path d="M${x+bw},${y-6} l14,0 l16,${bh+6} h-30 z" fill="#2c3d37"/>`;
+    s += `<line x1="${x-6}" x2="${x+8}" y1="${y}" y2="${y}" stroke="#8c9c93"/><text x="${x+12}" y="${y+4}" font-size="12" class="t">máx ${fmt(d.cotaMax)} msnm</text>`;
+    s += `<text x="${x+bw/2}" y="${wy+30}" font-size="30" font-weight="600" text-anchor="middle" fill="#0e1614">${fmt(d.cota,2)}</text>`;
+    s += `<text x="${x+bw/2}" y="${wy+47}" font-size="12.5" text-anchor="middle" fill="#0e1614">msnm · ${fch(d.fechaCota)} · mín ${fmt(d.cotaMin)}</text>`;
+    s += `<text x="${x}" y="${y-12}" font-size="19" font-weight="600"><tspan fill="#a9c39a" font-size="13" font-weight="400">${d.cod} </tspan>${d.nombre}</text>`;
     s += `<text x="${x}" y="${y+bh+17}" font-size="13" class="t">${fmt(d.vol)} de ${fmt(d.volMax)} hm³ (${d.pct} %) · ${fch(d.fechaVol)}</text>`;
     if(d.nota) s += `<text x="${x}" y="${y+bh+33}" font-size="12.5" class="t">${d.nota}</text>`;
-    // turbinado
-    const tx = x+bw+34, ty = y+bh-8;
-    s += `<path d="M${x+bw+22},${ty} h${gap-34} v24" fill="none" stroke="#55c8e0" stroke-width="3" stroke-dasharray="3 7" class="chorro"/>`;
-    s += `<text x="${tx}" y="${ty-26}" font-size="26" font-weight="600" fill="#55c8e0">${fmt(HID[i])}<tspan font-size="14" dx="3">MW</tspan></text>`;
-    s += `<text x="${tx}" y="${ty-10}" font-size="11.5" class="t">de ${d.mw} MW</text>`;
+    // generación vs instalado: la pista mide la potencia instalada, a la misma escala en los tres
+    const tx = x+bw+36, ty = y+bh-8, pw = barW*d.mw/mwMax, f = HID[i]/d.mw;
+    s += `<text x="${tx}" y="${ty-52}" font-size="26" font-weight="600" fill="#4fd0e6">${fmt(HID[i])}<tspan font-size="14" dx="3">MW</tspan></text>`;
+    s += `<text x="${tx}" y="${ty-37}" font-size="12" class="t">${fmt(f*100)} % de ${d.mw}</text>`;
+    s += `<rect x="${tx}" y="${ty-30}" width="${pw}" height="9" fill="#1a2622" stroke="#1c7d94"/>`;
+    s += `<rect x="${tx}" y="${ty-30}" width="${pw*f}" height="9" fill="#4fd0e6"/>`;
+    s += `<path d="M${x+bw+22},${ty} h${gap-34} v24" fill="none" stroke="#4fd0e6" stroke-width="3" stroke-dasharray="3 7" class="chorro"/>`;
   });
   $("cascada").innerHTML = s;
 })();
@@ -227,157 +288,155 @@ $("fuentes").innerHTML = D.fuentes.map(f=>`<li><a href="${f[1]}" target="_blank"
 (function(){
   const R = D.rio, P = R.pronosticoUNSJ, max = 90, H = 86, y = v => 96-v/max*H, bw = 34, x0 = 96;
   let s = "";
-  s += `<text x="0" y="40" font-size="44" font-weight="600" fill="#55c8e0">${fmt(R.caudal,1)}</text>`;
+  s += `<text x="0" y="40" font-size="44" font-weight="600" fill="#4fd0e6">${fmt(R.caudal,1)}</text>`;
   s += `<text x="0" y="58" font-size="13" class="t">m³/s · ${fch(R.fecha)}</text>`;
   s += `<text x="0" y="78" font-size="12" class="t">+${fmt((R.caudal/R.caudal2025-1)*100)} % vs 2025</text>`;
   s += `<text x="0" y="94" font-size="12" class="t">prevén ${R.proyeccionNoviembre} en nov</text>`;
   P.forEach((p,i)=>{
     const x = x0+i*(bw+10);
-    s += `<rect x="${x}" y="${y(p[1])}" width="${bw}" height="${96-y(p[1])}" fill="#172f3b" stroke="#33505d"/>`;
+    s += `<rect x="${x}" y="${y(p[1])}" width="${bw}" height="${96-y(p[1])}" fill="#1a2622" stroke="#3a4d46"/>`;
     s += `<text x="${x+bw/2}" y="${y(p[1])-4}" font-size="11.5" text-anchor="middle" class="t">${fmt(p[1])}</text>`;
     s += `<text x="${x+bw/2}" y="110" font-size="12" text-anchor="middle" class="t">${p[0]}</text>`;
   });
   const xn = x0+(bw+10)+bw/2;
-  s += `<line x1="${xn-bw/2-3}" x2="${xn+bw/2+3}" y1="${y(R.caudal)}" y2="${y(R.caudal)}" stroke="#55c8e0" stroke-width="3"/>`;
-  s += `<line x1="${x0-4}" x2="${x0+bw+4}" y1="${y(R.caudalPrevio)}" y2="${y(R.caudalPrevio)}" stroke="#55c8e0" stroke-width="2" opacity=".5"/>`;
+  s += `<line x1="${xn-bw/2-3}" x2="${xn+bw/2+3}" y1="${y(R.caudal)}" y2="${y(R.caudal)}" stroke="#4fd0e6" stroke-width="3"/>`;
+  s += `<line x1="${x0-4}" x2="${x0+bw+4}" y1="${y(R.caudalPrevio)}" y2="${y(R.caudalPrevio)}" stroke="#4fd0e6" stroke-width="2" opacity=".5"/>`;
   $("rio").innerHTML = s;
 })();
 
-/* ---------- polos solares ---------- */
+/* ---------- polos solares: la pista mide lo instalado, el relleno lo que genera ---------- */
 $("polos").innerHTML = D.solar.polos.map(p=>`<div class="polo" title="${p.parques.map(q=>q[0]+" "+q[1]+" MW"+(q[2]?" ("+q[2]+")":"")).join(" · ")}${p.extra?" — "+p.extra:""}">
-  <span class="n">${p.nombre}</span>
-  <span class="barra"><i id="b_${p.id}" style="width:0"></i><span>${p.parques.map(q=>q[0]).join(", ")}</span></span>
+  <span class="n">${p.nombre}<small>${p.cod}</small></span>
+  <span class="pista"><span class="barra" style="width:${p.mw/solMax*70}%"><i id="b_${p.id}" style="width:0"></i></span><span class="pq">${p.parques.map(q=>q[0]).join(", ")}</span></span>
   <span class="v"><b id="v_${p.id}">0</b> <small>/ ${p.mw} MW</small></span></div>`).join("");
-const identificado = D.solar.polos.reduce((a,p)=>a+p.mw,0);
-$("solNota").textContent = fmt(identificado)+" MW identificados";
+
+/* ---------- UTM 19S ---------- */
+function utm(lat,lon){
+  const a=6378137,f=1/298.257223563,k0=.9996,e2=f*(2-f),ep2=e2/(1-e2),p=lat*rad;
+  const N=a/Math.sqrt(1-e2*Math.sin(p)**2),T=Math.tan(p)**2,C=ep2*Math.cos(p)**2,A=(lon+69)*rad*Math.cos(p);
+  const M=a*((1-e2/4-3*e2*e2/64-5*e2**3/256)*p-(3*e2/8+3*e2*e2/32+45*e2**3/1024)*Math.sin(2*p)+(15*e2*e2/256+45*e2**3/1024)*Math.sin(4*p)-(35*e2**3/3072)*Math.sin(6*p));
+  const E=500000+k0*N*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*ep2)*A**5/120);
+  const Nn=1e7+k0*(M+N*Math.tan(p)*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*ep2)*A**6/720));
+  return [E,Nn];
+}
+window.__utm = utm;
+const dms = (v,pos,neg) => { const a=Math.abs(v), d=Math.floor(a), m=Math.floor((a-d)*60), s=((a-d)*60-m)*60; return d+"°"+String(m).padStart(2,"0")+"′"+s.toFixed(1).padStart(4,"0")+"″"+(v<0?neg:pos); };
 
 /* ---------- mapa ---------- */
-const cv = $("mapa"), cx = cv.getContext("2d");
-const B = {w:-70.75,e:-66.75,n:-28.2,s:-32.7}, K = Math.cos(30.5*Math.PI/180);
-const PROV = [[-69.65,-28.4],[-69.1,-28.75],[-68.75,-29.15],[-68.55,-29.6],[-67.95,-29.95],[-67.5,-30.1],[-67.1,-30.35],[-66.95,-30.9],[-67.05,-31.4],[-67.1,-31.9],[-67.3,-32.1],[-67.8,-32.15],[-68.2,-32.1],[-68.7,-32.45],[-69.2,-32.45],[-69.65,-32.3],[-70.2,-32.45],[-70.55,-31.9],[-70.5,-31.2],[-70.3,-30.5],[-69.95,-30.1],[-69.95,-29.4],[-69.8,-28.8]];
-const RIO = [[-69.42,-31.3],[-69.3,-31.34],[-69.2,-31.39],[-69.12,-31.43],[-69.05,-31.49],[-68.975,-31.527],[-68.9,-31.535],[-68.82,-31.52],[-68.74,-31.495],[-68.645,-31.47],[-68.57,-31.5],[-68.49,-31.46],[-68.38,-31.52],[-68.25,-31.62],[-68.12,-31.78],[-68.02,-31.95]];
-const AFLU = [[[-69.5,-31.95],[-69.45,-31.6],[-69.42,-31.3]],[[-69.75,-30.95],[-69.55,-31.1],[-69.42,-31.3]]]; // Los Patos y Castaño
-const JACHAL = [[-69.35,-29.75],[-69.15,-30.0],[-69.07,-30.18],[-68.9,-30.2],[-68.75,-30.24],[-68.5,-30.3]];
-let W=0,H=0,sc=1,ox=0,oy=0,dpr=1, rioPx=[], rioLen=[], rioTot=0, parts=[];
-const px = (lon,lat) => [ox+(lon-B.w)*K*sc, oy+(B.n-lat)*sc];
-function medir(){
-  const r = cv.getBoundingClientRect(); dpr = Math.min(2,devicePixelRatio||1);
-  W = r.width; H = r.height; cv.width = W*dpr; cv.height = H*dpr;
-  const top = W<520 ? 96 : Math.min(185,H*.21), bot = 78, mw = (B.e-B.w)*K, mh = B.n-B.s;
-  sc = Math.min((W-20)/mw,(H-top-bot)/mh); ox = (W-mw*sc)/2; oy = top+(H-top-bot-mh*sc)/2;
-  rioPx = RIO.map(p=>px(p[0],p[1])); rioLen=[0]; rioTot=0;
-  for(let i=1;i<rioPx.length;i++){ rioTot += Math.hypot(rioPx[i][0]-rioPx[i-1][0],rioPx[i][1]-rioPx[i-1][1]); rioLen.push(rioTot); }
-  const n = Math.round(D.rio.caudal*1.3);
-  parts = Array.from({length:n},()=>({t:Math.random(),o:(Math.random()-.5)*5,v:.6+Math.random()*.8}));
+const map = L.map("mapa",{zoomControl:false,zoomSnap:.25,minZoom:6,maxZoom:17});
+L.control.zoom({position:"bottomright"}).addTo(map);
+L.control.scale({imperial:false,position:"bottomright",maxWidth:140}).addTo(map);
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const CAPAS = {
+  sat: L.layerGroup([
+    L.tileLayer(ESRI+"World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics"}),
+    L.tileLayer(ESRI+"Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,opacity:.85})]),
+  topo: L.tileLayer(ESRI+"World_Topo_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Topografía © Esri y colaboradores"}),
+  osm: L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'})
+};
+let capa = null;
+function ponerCapa(k){
+  if(capa) map.removeLayer(capa);
+  capa = CAPAS[k].addTo(map);
+  const tp = map.getPane("tilePane"); tp.classList.toggle("sat",k==="sat"); tp.classList.toggle("claro",k!=="sat");
+  document.querySelectorAll("#capas button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.c===k));
 }
-function enRio(t){
-  const L = t*rioTot; let i = 1; while(i<rioLen.length-1 && rioLen[i]<L) i++;
-  const a = rioPx[i-1], b = rioPx[i], f = (L-rioLen[i-1])/(rioLen[i]-rioLen[i-1]||1);
-  const dx = b[0]-a[0], dy = b[1]-a[1], l = Math.hypot(dx,dy)||1;
-  return [a[0]+dx*f, a[1]+dy*f, -dy/l, dx/l];
-}
-function linea(pts){ cx.beginPath(); pts.forEach((p,i)=>{const q=px(p[0],p[1]); i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1]);}); }
-function dibujar(ts){
-  const sol = solarAhora(), elC = sunElev(tiempo(),-31.5,-68.5), dia = Math.max(0,Math.min(1,(elC+6)/18));
-  cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,W,H);
-  // retícula
-  cx.lineWidth = 1; cx.font = "11px 'Saira Condensed',sans-serif"; cx.fillStyle = "#5f7884";
-  for(let lo=-70.5;lo<=-67;lo+=.5){ const a=px(lo,B.n),b=px(lo,B.s); cx.strokeStyle="rgba(51,80,93,.35)"; cx.beginPath(); cx.moveTo(a[0],a[1]); cx.lineTo(b[0],b[1]); cx.stroke(); if(lo%1===0 && lo>-69.5){cx.textAlign="center"; cx.fillText(Math.abs(lo)+"°O",b[0],b[1]+13);} }
-  for(let la=-28.5;la>=-32.5;la-=.5){ const a=px(B.w,la),b=px(B.e,la); cx.beginPath(); cx.moveTo(a[0],a[1]); cx.lineTo(b[0],b[1]); cx.stroke(); if(la%1===0){cx.textAlign="left"; cx.fillText(Math.abs(la)+"°S",a[0]+2,a[1]-3);} }
-  // provincia y curvas
-  linea(PROV); cx.closePath();
-  const g = cx.createLinearGradient(px(B.w,0)[0],0,px(B.e,0)[0],0);
-  g.addColorStop(0,`rgba(${38+dia*14},${70+dia*16},${84+dia*14},1)`); g.addColorStop(.45,"#1a3542"); g.addColorStop(1,"#15303b");
-  cx.fillStyle = g; cx.fill(); cx.save(); cx.clip();
-  for(let k=0;k<34;k++){
-    const base = B.w+0.05+Math.pow(k/34,1.5)*3.7, amp = .1+.07*Math.sin(k*1.7);
-    cx.beginPath();
-    for(let la=B.n;la>=B.s;la-=.05){
-      const lo = base+amp*Math.sin(la*3.1+k*.9)+.05*Math.sin(la*9.3+k*2.3)+.03*Math.sin(la*21+k);
-      const q = px(lo,la); la===B.n?cx.moveTo(q[0],q[1]):cx.lineTo(q[0],q[1]);
-    }
-    cx.strokeStyle = `rgba(110,150,165,${k%5===0?.34:.15})`; cx.lineWidth = k%5===0?1.1:.7; cx.stroke();
-  }
-  cx.restore();
-  linea(PROV); cx.closePath(); cx.strokeStyle="#6f8f9c"; cx.lineWidth=1.4; cx.stroke();
-  // ríos
-  cx.lineCap="round"; cx.lineJoin="round";
-  [JACHAL,...AFLU].forEach(r=>{ linea(r); cx.strokeStyle="rgba(85,200,224,.28)"; cx.lineWidth=1.3; cx.stroke(); });
-  linea(RIO); cx.strokeStyle="rgba(85,200,224,.35)"; cx.lineWidth=5; cx.stroke();
-  linea(RIO); cx.strokeStyle="#2c93ad"; cx.lineWidth=1.6; cx.stroke();
-  // flujo
-  const vel = D.rio.caudal/61*0.00055;
-  cx.fillStyle = "#c9f4fb";
-  parts.forEach(p=>{
-    if(!reduce) p.t += vel*p.v; if(p.t>1) p.t -= 1;
-    const q = enRio(p.t), a = Math.sin(p.t*Math.PI);
-    cx.globalAlpha = .25+.7*a; cx.beginPath(); cx.arc(q[0]+q[2]*p.o*.5,q[1]+q[3]*p.o*.5,1.25,0,7); cx.fill();
-  });
-  cx.globalAlpha = 1;
-  // ciudad
-  const c = px(-68.536,-31.537); cx.fillStyle="#e9e4d4"; cx.fillRect(c[0]-3,c[1]-3,6,6);
-  cx.font="13px 'Saira Condensed',sans-serif"; cx.textAlign="left"; cx.fillStyle="#cfd6d3"; cx.fillText("Ciudad de San Juan",c[0]+9,c[1]+5);
-  // aforo
-  const k = px(-69.12,-31.43); cx.strokeStyle="#55c8e0"; cx.lineWidth=1.5; cx.beginPath(); cx.arc(k[0],k[1],5,0,7); cx.stroke();
-  cx.textAlign="right"; cx.fillStyle="#55c8e0"; cx.font="600 15px 'Saira Condensed',sans-serif"; cx.fillText(fmt(D.rio.caudal,1)+" m³/s",k[0]-12,k[1]-12);
-  cx.fillStyle="#8fa5ad"; cx.font="12px 'Saira Condensed',sans-serif"; cx.fillText("aforo km 101",k[0]-12,k[1]+2);
-  // diques
-  const lab = [[-69.28,-31.80],[-69.12,-32.02],[-68.96,-32.24]];
-  D.diques.forEach((d,i)=>{
-    const q = px(d.lon,d.lat), a = px(lab[i][0],lab[i][1]), pul = reduce?0:(Math.sin(ts/500+i)+1)/2;
-    cx.strokeStyle="rgba(143,165,173,.6)"; cx.lineWidth=1; cx.beginPath(); cx.moveTo(q[0],q[1]+8); cx.lineTo(q[0],a[1]-4); cx.lineTo(a[0]+4,a[1]-4); cx.stroke();
-    cx.save(); cx.translate(q[0],q[1]); cx.rotate(Math.PI/4);
-    cx.fillStyle = `rgba(85,200,224,${.15+.2*pul})`; cx.fillRect(-9-pul*3,-9-pul*3,18+pul*6,18+pul*6);
-    cx.fillStyle = "#55c8e0"; cx.fillRect(-5,-5,10,10); cx.restore();
-    cx.textAlign = "right";
-    cx.font="600 14px 'Saira Condensed',sans-serif"; cx.fillStyle="#e9e4d4"; cx.fillText(d.nombre,a[0],a[1]);
-    cx.font="12.5px 'Saira Condensed',sans-serif"; cx.fillStyle="#55c8e0"; cx.fillText(fmt(d.cota,2)+" msnm · "+fmt(HID[i])+" MW",a[0],a[1]+14);
-  });
-  const cdv = D.otrasHidro[1], qc = px(cdv.lon,cdv.lat);
-  cx.save(); cx.translate(qc[0],qc[1]); cx.rotate(Math.PI/4); cx.fillStyle="rgba(85,200,224,.6)"; cx.fillRect(-4,-4,8,8); cx.restore();
-  cx.textAlign="left"; cx.font="12.5px 'Saira Condensed',sans-serif"; cx.fillStyle="#8fa5ad"; cx.fillText("Cuesta del Viento · 10 MW",qc[0]+10,qc[1]+4);
-  // polos solares
-  D.solar.polos.forEach((p,i)=>{
-    const q = px(p.lon,p.lat), r = 5+Math.sqrt(p.mw)*1.15, f = sol[i].f, mwN = p.mw*f;
-    if(f>0.01){
-      const gl = cx.createRadialGradient(q[0],q[1],r*.4,q[0],q[1],r*(2+f*1.6));
-      gl.addColorStop(0,`rgba(255,182,39,${.55*f+.1})`); gl.addColorStop(1,"rgba(255,182,39,0)");
-      cx.fillStyle = gl; cx.beginPath(); cx.arc(q[0],q[1],r*(2+f*1.6),0,7); cx.fill();
-      cx.strokeStyle = `rgba(255,182,39,${.25+.5*f})`; cx.lineWidth = 1.4;
-      const rot = reduce?0:ts/4000;
-      for(let j=0;j<12;j++){ const a = rot+j*Math.PI/6, r1 = r+4, r2 = r+7+f*10; cx.beginPath(); cx.moveTo(q[0]+Math.cos(a)*r1,q[1]+Math.sin(a)*r1); cx.lineTo(q[0]+Math.cos(a)*r2,q[1]+Math.sin(a)*r2); cx.stroke(); }
-    }
-    cx.beginPath(); cx.arc(q[0],q[1],r,0,7);
-    cx.fillStyle = `rgba(255,182,39,${.12+.8*f})`; cx.fill(); cx.strokeStyle="#ffb627"; cx.lineWidth=1.5; cx.stroke();
-    const izq = p.id==="iglesia"||p.id==="calingasta"; cx.textAlign = izq?"right":"left"; const dx = (r+10+f*10)*(izq?-1:1), dy = p.id==="ullum" ? -r-16 : 0;
-    cx.font="600 14px 'Saira Condensed',sans-serif"; cx.fillStyle="#e9e4d4"; cx.fillText("Solar "+p.nombre,q[0]+dx,q[1]-2+dy);
-    cx.font="12.5px 'Saira Condensed',sans-serif"; cx.fillStyle="#ffb627"; cx.fillText(fmt(mwN)+" de "+p.mw+" MW",q[0]+dx,q[1]+13+dy);
-  });
-  // paneles
-  let tot = 0;
-  D.solar.polos.forEach((p,i)=>{ const m = p.mw*sol[i].f; tot += m; $("v_"+p.id).textContent = fmt(m); $("b_"+p.id).style.width = (sol[i].f/.85*100)+"%"; });
-  const prov = tot/identificado*D.solar.mwProvincia;
-  $("tSolar").textContent = fmt(prov*anim); $("tHidro").textContent = fmt(HIDTOT*anim);
-  $("solNota").textContent = elC<=0 ? "de noche no generan, mové la hora" : fmt(identificado)+" MW identificados";
-  requestAnimationFrame(dibujar);
-}
-let anim = reduce?1:0; const t0 = performance.now();
-(function sube(t){ anim = Math.min(1,(t-t0)/1400); anim = 1-Math.pow(1-anim,3); if(anim<1) requestAnimationFrame(sube); })(t0);
+document.querySelectorAll("#capas button").forEach(b=>b.addEventListener("click",()=>ponerCapa(b.dataset.c)));
 
-/* ---------- reloj y control de hora ---------- */
+const todos = [...D.diques,...D.solar.polos].map(p=>[p.lat,p.lon]);
+const chico = () => map.getSize().x<520;
+const VISTAS = {
+  prov: () => map.fitBounds(L.latLngBounds(todos),chico()?{paddingTopLeft:[70,90],paddingBottomRight:[90,110]}:{paddingTopLeft:[150,185],paddingBottomRight:[150,150]}),
+  diques: () => map.fitBounds(L.latLngBounds(D.diques.map(d=>[d.lat,d.lon]).concat([[D.solar.polos[0].lat,D.solar.polos[0].lon]])),chico()?{padding:[50,120]}:{paddingTopLeft:[170,150],paddingBottomRight:[200,170]}),
+  iglesia: () => map.setView([D.solar.polos[1].lat,D.solar.polos[1].lon],11)
+};
+document.querySelectorAll("#vistas button").forEach(b=>b.addEventListener("click",()=>VISTAS[b.dataset.v]()));
+VISTAS.prov();
+ponerCapa("sat");
+
+// retícula geográfica
+const grat = L.layerGroup().addTo(map);
+function reticula(){
+  grat.clearLayers();
+  const z = map.getZoom(), b = map.getBounds(), st = z<7.5?1:z<9.5?.5:z<11?.25:z<12.5?.1:z<14?.05:.01, dec = st<.1?2:st<1?(st===.25?2:1):0;
+  const estilo = {color:"#a9c39a",weight:1,opacity:.32,interactive:false};
+  const sz = map.getSize(), ladoE = map.containerPointToLatLng([sz.x-58,0]).lng, ladoN = map.containerPointToLatLng([0,sz.y-30]).lat;
+  for(let lo=Math.ceil(b.getWest()/st)*st; lo<=b.getEast(); lo+=st){
+    L.polyline([[b.getSouth(),lo],[b.getNorth(),lo]],estilo).addTo(grat);
+    L.marker([ladoN,lo],{interactive:false,icon:L.divIcon({className:"grat",html:Math.abs(lo).toFixed(dec).replace(".",",")+"° O",iconSize:[0,0],iconAnchor:[-3,0]})}).addTo(grat);
+  }
+  for(let la=Math.ceil(b.getSouth()/st)*st; la<=b.getNorth(); la+=st){
+    L.polyline([[la,b.getWest()],[la,b.getEast()]],estilo).addTo(grat);
+    L.marker([la,ladoE],{interactive:false,icon:L.divIcon({className:"grat",html:Math.abs(la).toFixed(dec).replace(".",",")+"° S",iconSize:[0,0],iconAnchor:[0,16]})}).addTo(grat);
+  }
+}
+map.on("moveend",reticula); reticula();
+
+// coordenadas del cursor (o del centro)
+function coords(ll){
+  const u = utm(ll.lat,ll.lng);
+  $("cLL").textContent = dms(ll.lat,"N","S")+"  "+dms(ll.lng,"E","O");
+  $("cUTM").textContent = fmt(u[0])+" E  "+fmt(u[1])+" N";
+  $("cZ").textContent = map.getZoom().toFixed(1).replace(".",",");
+}
+map.on("mousemove",e=>coords(e.latlng)); map.on("move zoomend",()=>coords(map.getCenter())); coords(map.getCenter());
+
+// enlace de flujo (esquemático): aforo → diques → valle
+const ruta = [[D.rio.aforo.lat,D.rio.aforo.lon],...D.diques.map(d=>[d.lat,d.lon]),[-31.50,-68.56]];
+L.polyline(ruta,{color:"#4fd0e6",weight:5,className:"rio-base",interactive:false}).addTo(map);
+const flujo = L.polyline(ruta,{color:"#d6f6fb",weight:3,className:"rio",lineCap:"round",interactive:false}).addTo(map);
+if(flujo.getElement()) flujo.getElement().style.setProperty("--dur",(1.6*61/D.rio.caudal).toFixed(2)+"s");
+
+// símbolos con etiqueta y línea guía
+function activo(p,tipo,dx,dy,r,l1,l2){
+  const der = dx>=0, html = `<div class="act ${tipo}" id="a_${tipo}_${p.id}" style="--f:0">
+    <svg class="lead" width="1" height="1"><line x1="0" y1="0" x2="${dx}" y2="${dy}"/></svg>
+    <div class="sym" style="width:${r*2}px;height:${r*2}px"><i></i></div>
+    <div class="tag" style="${der?"left:"+dx+"px":"right:"+(-dx)+"px"};top:${dy-18}px"><b>${l1}</b><span id="t_${tipo}_${p.id}">${l2}</span></div></div>`;
+  return L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",html,iconSize:[0,0]}),interactive:false,keyboard:false}).addTo(map);
+}
+const offD = {caracoles:[-64,22],puntanegra:[-40,78],ullum:[54,62]};
+D.diques.forEach((d,i)=>{
+  activo(d,"h",offD[d.id][0],offD[d.id][1],13,`<small>${d.cod}</small>${d.nombre}`,`${fmt(d.cota,2)} msnm · ${fmt(HID[i])} / ${d.mw} MW`);
+  document.getElementById("a_h_"+d.id).style.setProperty("--f",HID[i]/d.mw);
+});
+const offS = {ullum:[58,-40],iglesia:[52,-30],sarmiento:[50,26],calingasta:[-46,34]};
+D.solar.polos.forEach(p=>activo(p,"s",offS[p.id][0],offS[p.id][1],9+Math.sqrt(p.mw)*.8,`<small>${p.cod}</small>Solar ${p.nombre}`,""));
+activo({id:"aforo",lat:D.rio.aforo.lat,lon:D.rio.aforo.lon},"q",-50,-44,7,"Aforo km 101",fmt(D.rio.caudal,1)+" m³/s · "+fch(D.rio.fecha));
+const cdv = D.otrasHidro[1];
+activo({id:"cdv",lat:cdv.lat,lon:cdv.lon},"h",-44,-8,10,"<small>H-05</small>Cuesta del Viento",cdv.mw+" MW instalados");
+
+/* ---------- actualización ---------- */
+let anim = reduce?1:0; const t0 = performance.now();
+function pintar(){
+  const sol = solarAhora(); let tot = 0;
+  D.solar.polos.forEach((p,i)=>{
+    const f = sol[i], m = p.mw*f; tot += m;
+    $("v_"+p.id).textContent = fmt(m); $("b_"+p.id).style.width = (f*100)+"%";
+    const a = document.getElementById("a_s_"+p.id); if(a) a.style.setProperty("--f",f.toFixed(3));
+    const t = document.getElementById("t_s_"+p.id); if(t) t.textContent = fmt(m)+" / "+p.mw+" MW · "+fmt(f*100)+" %";
+  });
+  const prov = tot/solIdent*D.solar.mwProvincia;
+  $("tSolar").textContent = fmt(prov*anim); $("tHidro").textContent = fmt(HIDTOT*anim);
+  $("mSolar").style.width = (prov/D.solar.mwProvincia*100)+"%";
+  $("solInst").textContent = fmt(prov/D.solar.mwProvincia*100)+" % de más de "+fmt(D.solar.mwProvincia)+" MW en "+D.solar.parquesOperativos+" parques";
+  const noche = sunElev(tiempo(),-31.5,-68.5)<=0;
+  $("solNota").textContent = noche ? "de noche no generan, mové la hora" : "barra = MW instalados";
+}
+(function sube(t){ anim = Math.min(1,(t-t0)/1400); anim = 1-Math.pow(1-anim,3); pintar(); if(anim<1) requestAnimationFrame(sube); })(t0);
+
 function reloj(){
   const t = tiempo(), loc = new Date(t.getTime()+TZ*36e5);
-  const hh = String(loc.getUTCHours()).padStart(2,"0"), mm = String(loc.getUTCMinutes()).padStart(2,"0");
-  $("hora").textContent = hh+":"+mm;
+  $("hora").textContent = String(loc.getUTCHours()).padStart(2,"0")+":"+String(loc.getUTCMinutes()).padStart(2,"0");
   $("fecha").textContent = (simMin===null?"hora de San Juan · ":"hora simulada · ")+loc.getUTCDate()+" "+MES[loc.getUTCMonth()]+" "+loc.getUTCFullYear();
-  $("horaSim").textContent = simMin===null ? (liveGHI?"radiación medida":"cielo despejado") : "cielo despejado";
+  $("horaSim").textContent = (simMin===null && liveGHI) ? "radiación medida" : "cielo despejado";
   if(simMin===null) $("slider").value = loc.getUTCHours()*60+loc.getUTCMinutes();
+  pintar();
 }
 $("slider").addEventListener("input",e=>{ simMin = +e.target.value; $("ahora").setAttribute("aria-pressed","false"); reloj(); });
 $("ahora").addEventListener("click",()=>{ simMin = null; $("ahora").setAttribute("aria-pressed","true"); reloj(); });
 setInterval(reloj,15000);
 
-/* ---------- radiación en vivo ---------- */
 function radiacion(){
   const la = D.solar.polos.map(p=>p.lat).join(","), lo = D.solar.polos.map(p=>p.lon).join(",");
   fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current=shortwave_radiation`)
@@ -385,8 +444,8 @@ function radiacion(){
     .catch(()=>{ liveGHI = null; });
 }
 radiacion(); setInterval(radiacion,10*60*1000);
-
-addEventListener("resize",medir); medir(); reloj(); requestAnimationFrame(dibujar);
+addEventListener("resize",()=>map.invalidateSize());
+reloj();
 })();
 </script>
 </body>
