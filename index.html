@@ -141,7 +141,7 @@ svg .t{fill:var(--tenue)}
     </div>
     <div class="capas">
       <div class="grupo" id="capas" role="group" aria-label="Cartografía base">
-        <button data-c="sat" aria-pressed="true">Satélite</button><button data-c="topo" aria-pressed="false">Topográfico</button><button data-c="osm" aria-pressed="false">OpenStreetMap</button>
+        <button data-c="sat" aria-pressed="true">Satélite</button><button data-c="topo" aria-pressed="false">Topográfico</button>
       </div>
       <div class="grupo" id="vistas" role="group" aria-label="Encuadre">
         <button data-v="prov">Provincia</button><button data-v="diques">Diques</button><button data-v="iglesia">Iglesia</button>
@@ -190,7 +190,7 @@ svg .t{fill:var(--tenue)}
 
     <details class="pie">
       <summary>Fuentes, fechas de cada dato y cómo se estima la potencia</summary>
-      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. Las posiciones de los símbolos son aproximadas y el enlace de flujo entre diques es esquemático: no sigue el cauce. El caudal erogado por Quebrada de Ullum es el informado por Hidráulica para riego. Cartografía: Esri World Imagery, Esri World Topo Map y OpenStreetMap.</p>
+      <p>Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. La potencia hidroeléctrica es una estimación física (P = ρ·g·Q·H·η, η = 0,9) con cotas de restitución supuestas, porque EPSE y CAMMESA no publican generación por central en tiempo real. La potencia solar se estima con la radiación del momento (Open-Meteo) sobre la potencia instalada identificada por polo; al mover el control de hora se usa un modelo de cielo despejado. Las posiciones de los símbolos son aproximadas y el enlace de flujo entre diques es esquemático: no sigue el cauce. El caudal erogado por Quebrada de Ullum es el informado por Hidráulica para riego. Cartografía: Esri World Imagery y Esri World Topo Map.</p>
       <ul id="fuentes"></ul>
     </details>
   </section>
@@ -320,8 +320,7 @@ const CAPAS = {
   sat: L.layerGroup([
     L.tileLayer(ESRI+"World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imágenes © Esri, Maxar, Earthstar Geographics"}),
     L.tileLayer(ESRI+"Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,opacity:.85})]),
-  topo: L.tileLayer(ESRI+"World_Topo_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Topografía © Esri y colaboradores"}),
-  osm: L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'})
+  topo: L.tileLayer(ESRI+"World_Topo_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Topografía © Esri y colaboradores"})
 };
 let capa = null;
 function ponerCapa(k){

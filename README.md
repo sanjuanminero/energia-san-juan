@@ -2,7 +2,7 @@
 
 Tablero de una sola pantalla con la generación renovable de San Juan: cotas de Los Caracoles, Punta Negra y Quebrada de Ullum, caudal del río San Juan, potencia hidroeléctrica y polos solares (Ullum, Iglesia, Sarmiento, Calingasta).
 
-- `index.html`: el tablero (funciona en GitHub Pages). El mapa usa Leaflet (incluido en `vendor/`) con teselas de Esri y OpenStreetMap.
+- `index.html`: el tablero (funciona en GitHub Pages). El mapa usa Leaflet (incluido en `vendor/`) con teselas de Esri.
 - `datos.js`: todas las cifras, con fecha y fuente. Para actualizar, editar ese archivo.
 
 Qué es medido y qué es estimado:
