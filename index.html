@@ -364,8 +364,12 @@ map.on("moveend",reticula); reticula();
 // cauce del río San Juan (OpenStreetMap), decodificado desde diferencias
 const ruta = (()=>{ const a = D.rio.trazaOSM.split(",").map(Number), r = []; let la = 0, lo = 0;
   for(let i=0;i<a.length;i+=2){ la += a[i]; lo += a[i+1]; r.push([la/1e5,lo/1e5]); } return r; })();
-L.polyline(ruta,{color:"#4fd0e6",weight:5,className:"rio-base",interactive:false}).addTo(map);
-const flujo = L.polyline(ruta,{color:"#d6f6fb",weight:3,className:"rio",lineCap:"round",interactive:false}).addTo(map);
+// renderizador propio para el río: margen amplio y redibujo en cada paso de zoom, así la traza
+// nunca queda escalada ni corrida respecto del fondo mientras el mapa se acerca o se aleja
+const rRio = L.svg({padding:1});
+L.polyline(ruta,{color:"#4fd0e6",weight:5,className:"rio-base",interactive:false,renderer:rRio,smoothFactor:.5}).addTo(map);
+const flujo = L.polyline(ruta,{color:"#d6f6fb",weight:3,className:"rio",lineCap:"round",interactive:false,renderer:rRio,smoothFactor:.5}).addTo(map);
+map.on("zoom",()=>{ if(rRio._map){ rRio._onZoomEnd(); rRio._update(); } });
 if(flujo.getElement()) flujo.getElement().style.setProperty("--dur",(1.6*61/D.rio.caudal).toFixed(2)+"s");
 
 // símbolos con etiqueta y línea guía
