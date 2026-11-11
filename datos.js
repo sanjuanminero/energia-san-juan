@@ -24,54 +24,54 @@ window.DATOS = {
     ]
   },
 
-  // tail = cota de restitución supuesta para estimar el salto (no es dato oficial)
-  diques: [
-    { id: "caracoles", cod: "H-01", nombre: "Los Caracoles", lat: -31.51934, lon: -68.98292,
-      cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1100,
-      vol: 250, volMax: 545, pct: 46, fechaVol: "2026-09-07",
-      mw: 125, tail: 945, nota: "Subió 47 cm entre el 30 oct y el 1 nov" },
-    { id: "puntanegra", cod: "H-02", nombre: "Punta Negra", lat: -31.51742, lon: -68.81752,
-      cota: 924.11, fechaCota: "2026-10-03", cotaMin: 920, cotaMax: 950,
-      vol: 230, volMax: 500, pct: 46, fechaVol: "2026-09-07",
-      mw: 65, tail: 863, nota: "" },
-    { id: "ullum", cod: "H-03", nombre: "Quebrada de Ullum", lat: -31.47469, lon: -68.65012,
-      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768,
-      vol: 156, volMax: 312, pct: 50, fechaVol: "2026-09-07",
-      mw: 44, tail: 718, nota: "" }
+  // Centrales hidroeléctricas. gen = código de la unidad en el parte de CAMMESA; mw = potencia instalada.
+  // Las que tienen embalse llevan cota y volumen (últimos publicados, con fecha).
+  hidro: [
+    { id: "caracoles", cod: "H-01", gen: "CCOLHI", nombre: "Los Caracoles", lat: -31.51934, lon: -68.98292, mw: 125,
+      cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1100, vol: 250, volMax: 545, pct: 46, fechaVol: "2026-09-07" },
+    { id: "puntanegra", cod: "H-02", gen: "PNEGHI", nombre: "Punta Negra", lat: -31.51742, lon: -68.81752, mw: 65,
+      cota: 924.11, fechaCota: "2026-10-03", cotaMin: 920, cotaMax: 950, vol: 230, volMax: 500, pct: 46, fechaVol: "2026-09-07" },
+    // La Olla figura en CAMMESA como central "Ullum" (ULLUHI); central de pasada, sin embalse propio
+    { id: "laolla", cod: "H-03", gen: "ULLUHI", nombre: "La Olla", lat: -31.45559, lon: -68.75598, mw: 40 },
+    { id: "ullum", cod: "H-04", gen: "QULLHI", nombre: "Quebrada de Ullum", lat: -31.47469, lon: -68.65012, mw: 44,
+      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768, vol: 156, volMax: 312, pct: 50, fechaVol: "2026-09-07" },
+    { id: "cdv", cod: "H-05", gen: "CVIEHI", nombre: "Cuesta del Viento", lat: -30.18, lon: -69.07, mw: 10, rio: "Jáchal" }
   ],
+  minis: [["SAL2HI", "Salto de la Loma"], ["SALOHI", "Salto de la Loma (unidad 1)"], ["SGUIHI", "San Guillermo"]],
   reservaDisponible: 872.43,       // hm3 libres hasta nivel máximo ordinario (25 oct 2026)
-  otrasHidro: [
-    { nombre: "La Olla (AES)", mw: 40 },
-    { nombre: "Cuesta del Viento (río Jáchal)", mw: 10, lat: -30.18, lon: -69.07 }
-  ],
 
   solar: {
-    parquesOperativos: 24,         // 13 oct 2026
-    mwProvincia: 676,              // 547,4 MW (dic 2024, 21 parques) + San Juan Sur 129 MW
-    // polos: agrupan parques por zona (barras y símbolo a escala provincial)
+    // Unidades solares de San Juan según la base de renovables de CAMMESA (código: nombre, operador, MW instalados).
+    // Sin mw: se usa la potencia disponible que informa CAMMESA en el parte del día.
+    unidades: {
+      ULN1FV: ["Ullum N1", "Genneia", 25], ULN2FV: ["Ullum N2", "Genneia", 25], ULL3FV: ["Ullum N3", "Genneia", 32],
+      SULLFV: ["Sierras de Ullum", "Genneia", 78], ULL4FV: ["Ullum 4", "Solargen", 13.5], UL42FV: ["Ullum 4 ampliación", "Solargen", 7],
+      SJUAFV: ["San Juan I", "EPSE"], SJU2FV: ["San Juan I (unidad 2)", "EPSE"],
+      IGLEFV: ["Cordillera Solar (Iglesia–Guañizuil)", "JinkoSolar", 80], GZ2AFV: ["Guañizuil IIA", "Central Puerto", 117], ZONDFV: ["Zonda I", "YPF Luz", 100],
+      SJUSFV: ["San Juan Sur", "Genneia", 129], HON1FV: ["Cañada Honda 1", "360Energy"], HON2FV: ["Cañada Honda 2", "360Energy"],
+      HON3FV: ["Cañada Honda 3", "360Energy"], HON4FV: ["Cañada Honda 4", "360Energy"], CHI1FV: ["La Chimbera 1", "360Energy"],
+      TOC3FV: ["Tocota III", "Genneia", 60],
+      TAMBFV: ["Tamberías", ""], ANPCFV: ["Anchipurac", ""], LLOMFV: ["Las Lomitas", ""], DIAGFV: ["Los Diaguitas", ""],
+      ALGRFV: ["Algarrobo", ""], FITOFV: ["Fitovid", ""], PED1FV: ["San Pedro I – Coral", ""]
+    },
+    // polos: agrupan unidades por zona (barras y símbolo a escala provincial). "otros" no tiene ubicación verificada.
     polos: [
-      { id: "ullum", cod: "S-01", nombre: "Ullum", lat: -31.3650, lon: -68.6720, mw: 180.5,
-        parques: [["Ullum I, II y III", 82, "Genneia"], ["Sierras de Ullum", 78, "Genneia"], ["Ullum IV y Solargen 2", 20.5, "Solargen/Sidersa"]],
-        extra: "Ullum Alfa (EPSE, 50 MW) en construcción" },
-      { id: "iglesia", cod: "S-02", nombre: "Iglesia", lat: -30.4840, lon: -69.3210, mw: 297,
-        parques: [["Guañizuil IIA", 117, "Central Puerto"], ["Zonda I", 100, "YPF Luz"], ["Iglesia–Estancia Guañizuil", 80, "JinkoSolar"]],
-        extra: "Parque comunitario EPSE 10 MW + 30 MWh en baterías, en licitación" },
-      { id: "sarmiento", cod: "S-03", nombre: "Sarmiento", lat: -31.98751, lon: -68.53940, mw: 136,
-        parques: [["San Juan Sur", 129, "Genneia"], ["Cañada Honda y La Chimbera", 7, "360Energy"]],
-        extra: "San Juan Sur se inauguró en octubre de 2026; su ubicación exacta dentro de Sarmiento no está confirmada" },
-      { id: "calingasta", cod: "S-04", nombre: "Tocota", lat: -30.8164, lon: -69.4717, mw: 60,
-        parques: [["Tocota III", 60, "Genneia"]], extra: "" }
+      { id: "ullum", cod: "S-01", nombre: "Ullum", lat: -31.3650, lon: -68.6720, u: ["ULN1FV","ULN2FV","ULL3FV","SULLFV","ULL4FV","UL42FV","SJUAFV","SJU2FV"] },
+      { id: "iglesia", cod: "S-02", nombre: "Iglesia", lat: -30.4840, lon: -69.3210, u: ["GZ2AFV","ZONDFV","IGLEFV"] },
+      { id: "sarmiento", cod: "S-03", nombre: "Sarmiento", lat: -31.98751, lon: -68.53940, u: ["SJUSFV","HON1FV","HON2FV","HON3FV","HON4FV","CHI1FV"] },
+      { id: "calingasta", cod: "S-04", nombre: "Tocota", lat: -30.8164, lon: -69.4717, u: ["TOC3FV"] },
+      { id: "otros", cod: "S-05", nombre: "Otros", u: ["ALGRFV","PED1FV","TAMBFV","ANPCFV","DIAGFV","LLOMFV","FITOFV"] }
     ],
     // parques: símbolos individuales al acercar el mapa. Posiciones de relevamiento propio (10 nov 2026),
-    // salvo Tocota III (Global Energy Monitor). Nombres identificados contra Global Energy Monitor y EPSE.
+    // salvo Tocota III (Global Energy Monitor). San Juan Sur no tiene ubicación confirmada y solo aparece en el polo Sarmiento.
     parques: [
-      { id: "ullum123", polo: "ullum", nombre: "Ullum I, II y III", mw: 82, quien: "Genneia", lat: -31.33419, lon: -68.67033, off: [54,-30] },
-      { id: "sierras", polo: "ullum", nombre: "Sierras de Ullum", mw: 78, quien: "Genneia", lat: -31.37612, lon: -68.66466, off: [60,-4] },
-      { id: "ullum4", polo: "ullum", nombre: "Ullum IV y Solargen 2", mw: 20.5, quien: "Solargen", lat: -31.38659, lon: -68.67923, off: [-56,40] },
-      { id: "guanizuil", polo: "iglesia", nombre: "Guañizuil IIA + Estancia Guañizuil", mw: 197, quien: "Central Puerto / JinkoSolar", lat: -30.36363, lon: -69.29844, off: [52,-30] },
-      { id: "zonda", polo: "iglesia", nombre: "Zonda I", mw: 100, quien: "YPF Luz", lat: -30.60463, lon: -69.34312, off: [52,-20] },
-      { id: "canada", polo: "sarmiento", nombre: "Cañada Honda y La Chimbera", mw: 7, quien: "360Energy", lat: -31.98751, lon: -68.53940, off: [-46,34] },
-      { id: "tocota3", polo: "calingasta", nombre: "Tocota III", mw: 60, quien: "Genneia", lat: -30.8164, lon: -69.4717, off: [-46,34] }
+      { id: "ullum123", polo: "ullum", nombre: "Ullum N1, N2 y N3", quien: "Genneia", lat: -31.33419, lon: -68.67033, off: [54,-30], u: ["ULN1FV","ULN2FV","ULL3FV"] },
+      { id: "sierras", polo: "ullum", nombre: "Sierras de Ullum", quien: "Genneia", lat: -31.37612, lon: -68.66466, off: [60,-4], u: ["SULLFV"] },
+      { id: "ullum4", polo: "ullum", nombre: "Ullum 4 y ampliación", quien: "Solargen", lat: -31.38659, lon: -68.67923, off: [-40,-60], u: ["ULL4FV","UL42FV"] },
+      { id: "guanizuil", polo: "iglesia", nombre: "Guañizuil IIA + Cordillera Solar", quien: "Central Puerto / JinkoSolar", lat: -30.36363, lon: -69.29844, off: [52,-30], u: ["GZ2AFV","IGLEFV"] },
+      { id: "zonda", polo: "iglesia", nombre: "Zonda I", quien: "YPF Luz", lat: -30.60463, lon: -69.34312, off: [52,-20], u: ["ZONDFV"] },
+      { id: "canada", polo: "sarmiento", nombre: "Cañada Honda y La Chimbera", quien: "360Energy", lat: -31.98751, lon: -68.53940, off: [-46,34], u: ["HON1FV","HON2FV","HON3FV","HON4FV","CHI1FV"] },
+      { id: "tocota3", polo: "calingasta", nombre: "Tocota III", quien: "Genneia", lat: -30.8164, lon: -69.4717, off: [-46,34], u: ["TOC3FV"] }
     ]
   },
 
@@ -83,11 +83,11 @@ window.DATOS = {
     ["Pronóstico hídrico UNSJ 2026-27", "https://www.diarioelzondasj.com.ar/locales/la-unsj-preve-1653-hm-para-el-rio-san-juan-entre-2026-y-2027"],
     ["Proyección 80 m³/s en noviembre", "https://www.diariohuarpe.com/nota/pronostico-hidrico-de-san-juan-estara-listo-en-10-a-15-dias-202611218470"],
     ["Potencia hidroeléctrica instalada", "https://www.0264noticias.com.ar/noticias/2026/09/24/110896-en-el-ejecutivo-preven-que-por-el-aumento-en-los-niveles-de-los-rios-los-4-diques-y-la-central-de-la-olla-generaran-energia-al-mismo-tiempo-despues-de-casi-10-anos"],
-    ["24 parques solares, San Juan Sur 129 MW", "https://energiaonline.com.ar/inauguraron-el-parque-solar-de-mayor-potencia-operativo-en-san-juan"],
-    ["547,4 MW solares a dic 2024", "https://www.tiempodesanjuan.com/economia/san-juan-la-capital-del-solse-consolida-como-la-provincia-mas-parques-solares-del-pais-n395409"],
+    ["San Juan Sur 129 MW", "https://energiaonline.com.ar/inauguraron-el-parque-solar-de-mayor-potencia-operativo-en-san-juan"],
     ["Ullum Alfa e Iglesia híbrido (6 nov)", "https://www.diarioelzondasj.com.ar/economia/el-crecimiento-de-los-parques-solares-en-san-juan-el-avance-hacia-sistemas-hibridos-con-almacenamiento-y-el-impacto-de-los-fondos-mineros"],
     ["Identificación de parques: Global Energy Monitor", "https://www.gem.wiki/Ullum_Photovoltaic_Solar_Park"],
     ["Parques solares de San Juan: EPSE", "https://www.epsesanjuan.com.ar/index.php/web/energia/solar/2"],
-    ["Radiación solar en vivo", "https://open-meteo.com/"]
+    ["Generación horaria por central: Parte Post Operativo de CAMMESA", "https://cammesaweb.cammesa.com/parte-post-operativo/"],
+    ["Listado de unidades renovables por provincia: CAMMESA", "https://cammesaweb.cammesa.com/erenovables/"]
   ]
 };

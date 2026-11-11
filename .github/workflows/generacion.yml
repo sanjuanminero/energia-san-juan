@@ -1,0 +1,20 @@
+name: Actualizar generación (CAMMESA)
+on:
+  schedule:
+    - cron: "40 1 * * *"    # 22:40 de San Juan: el parte suele publicarse cerca de las 21 h
+    - cron: "10 11 * * *"   # 08:10, por si se publicó tarde
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/actualizar_generacion.py
+      - run: |
+          if git diff --quiet generacion.js; then echo "Sin cambios"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Generación CAMMESA: parte del $(grep -o '"fecha":"[0-9-]*"' generacion.js | cut -d'"' -f4)" generacion.js
+          git push
