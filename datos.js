@@ -29,7 +29,7 @@ window.DATOS = {
   // cotaMin = cota de seguridad (debajo queda la reserva que no se usa); cotaMax = cota máxima del embalse;
   // volUtil = capacidad útil entre ambas cotas. Cota, mínima y máxima se reemplazan por las del parte diario de CAMMESA (hidraulica.js).
   // resFrac = parte del vaso bajo la cota mínima, para el dibujo: (volMax - volUtil)/volMax en Caracoles y Punta Negra;
-  // en Ullum es aproximada (33 hm3 a cota 749 según Diario de Cuyo, 2015).
+  // cotaSeg = cota de seguridad que fija Hidráulica; si está, reemplaza a la mínima de CAMMESA (en Ullum CAMMESA informa 745).
   hidro: [
     { id: "caracoles", cod: "H-01", gen: "CCOLHI", nombre: "Los Caracoles", lat: -31.51934, lon: -68.98292, mw: 125,
       cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1110, vol: 250, volMax: 545, volUtil: 293, resFrac: 0.46, pct: 46, fechaVol: "2026-09-07" },
@@ -38,7 +38,7 @@ window.DATOS = {
     // La Olla figura en CAMMESA como central "Ullum" (ULLUHI); central de pasada, sin embalse propio
     { id: "laolla", cod: "H-03", gen: "ULLUHI", nombre: "La Olla", lat: -31.45559, lon: -68.75598, mw: 40 },
     { id: "ullum", cod: "H-04", gen: "QULLHI", nombre: "Quebrada de Ullum", lat: -31.47469, lon: -68.65012, mw: 44,
-      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768, vol: 156, volMax: 312, volUtil: 179, resFrac: 0.10, pct: 50, fechaVol: "2026-09-07" },
+      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768, vol: 156, volMax: 312, volUtil: 179, resFrac: 0.43, cotaSeg: 760, pct: 50, fechaVol: "2026-09-07" },
     { id: "cdv", cod: "H-05", gen: "CVIEHI", nombre: "Cuesta del Viento", lat: -30.18, lon: -69.07, mw: 10, rio: "Jáchal" }
   ],
   minis: [["SAL2HI", "Salto de la Loma"], ["SALOHI", "Salto de la Loma (unidad 1)"], ["SGUIHI", "San Guillermo"]],
