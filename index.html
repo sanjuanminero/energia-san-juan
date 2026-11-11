@@ -333,7 +333,7 @@ curva("cHidro",HID_COD,hidInst,"#4fd0e6"); curva("cSolar",SOL_COD,solInst,"#ffb6
   const primero = Math.max(0,v.findIndex((q,i)=>HI.dias[dia(i)]));
   [primero,Math.round((primero+N-1)/2),N-1].forEach((i,k)=>{ s += `<text x="${x0+i*paso+(k===2?bw:0)}" y="110" font-size="11" class="t" text-anchor="${k===2?"end":k?"middle":"start"}">${fch(dia(i))}</text>`; });
   $("rio").innerHTML = s;
-  $("rioNota").textContent = `${N} días · punteado: pronóstico UNSJ`;
+  $("rioNota").textContent = `${N} días · punteado: UNSJ`;
 })();
 
 /* ---------- zonas solares: la pista mide lo instalado, el relleno lo que generó en la hora ---------- */
