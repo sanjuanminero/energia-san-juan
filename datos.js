@@ -26,15 +26,17 @@ window.DATOS = {
 
   // Centrales hidroeléctricas. gen = código de la unidad en el parte de CAMMESA; mw = potencia instalada.
   // Las que tienen embalse llevan cota y volumen (últimos publicados, con fecha).
+  // cotaMin = cota de seguridad (debajo queda la reserva que no se usa); cotaMax = cota máxima del embalse;
+  // volUtil = capacidad útil entre ambas cotas.
   hidro: [
     { id: "caracoles", cod: "H-01", gen: "CCOLHI", nombre: "Los Caracoles", lat: -31.51934, lon: -68.98292, mw: 125,
-      cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1100, vol: 250, volMax: 545, pct: 46, fechaVol: "2026-09-07" },
+      cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1110, vol: 250, volMax: 545, volUtil: 293, pct: 46, fechaVol: "2026-09-07" },
     { id: "puntanegra", cod: "H-02", gen: "PNEGHI", nombre: "Punta Negra", lat: -31.51742, lon: -68.81752, mw: 65,
-      cota: 924.11, fechaCota: "2026-10-03", cotaMin: 920, cotaMax: 950, vol: 230, volMax: 500, pct: 46, fechaVol: "2026-09-07" },
+      cota: 924.11, fechaCota: "2026-10-03", cotaMin: 920, cotaMax: 950, vol: 230, volMax: 505, volUtil: 309, pct: 46, fechaVol: "2026-09-07" },
     // La Olla figura en CAMMESA como central "Ullum" (ULLUHI); central de pasada, sin embalse propio
     { id: "laolla", cod: "H-03", gen: "ULLUHI", nombre: "La Olla", lat: -31.45559, lon: -68.75598, mw: 40 },
     { id: "ullum", cod: "H-04", gen: "QULLHI", nombre: "Quebrada de Ullum", lat: -31.47469, lon: -68.65012, mw: 44,
-      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768, vol: 156, volMax: 312, pct: 50, fechaVol: "2026-09-07" },
+      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768, vol: 156, volMax: 312, volUtil: 179, pct: 50, fechaVol: "2026-09-07" },
     { id: "cdv", cod: "H-05", gen: "CVIEHI", nombre: "Cuesta del Viento", lat: -30.18, lon: -69.07, mw: 10, rio: "Jáchal" }
   ],
   minis: [["SAL2HI", "Salto de la Loma"], ["SALOHI", "Salto de la Loma (unidad 1)"], ["SGUIHI", "San Guillermo"]],
@@ -79,6 +81,7 @@ window.DATOS = {
     ["Caudal km 101 y erogaciones (2 nov)", "http://www.tiempodesanjuan.com/mineria/fuerte-repunte-del-caudal-del-rio-san-juan-bajo-un-162-mas-de-agua-que-en-2025-pero-la-recuperacion-de-los-diques-todavia-espera_1793661995"],
     ["Cotas Ullum y Punta Negra (3 oct)", "http://www.tiempodesanjuan.com/san-juan/un-paisaje-que-esta-a-punto-de-desaparecer-antes-del-deshielo-recorre-desde-el-aire-los-diques-de-ullum-y-punta-negra_1790997127"],
     ["Cotas, volúmenes y cotas de seguridad (7 sep)", "https://www.tiempodesanjuan.com/economia/tras-10-anos-los-diques-de-san-juan-volveran-a-llenarse-este-verano-segun-las-proyecciones-oficiales_1788713330"],
+    ["Cotas máximas, de seguridad y capacidad útil de cada embalse", "https://www.tiempodesanjuan.com/economia/como-estan-los-diques-san-juan-este-2025-cual-tiene-mas-agua-y-cual-esta-peor-n394433"],
     ["Reserva disponible 872,43 hm³ (25 oct)", "https://www.diarioelzondasj.com.ar/locales/tres-diques-de-san-juan-reservan-87243-hm-ante-crecidas"],
     ["Pronóstico hídrico UNSJ 2026-27", "https://www.diarioelzondasj.com.ar/locales/la-unsj-preve-1653-hm-para-el-rio-san-juan-entre-2026-y-2027"],
     ["Proyección 80 m³/s en noviembre", "https://www.diariohuarpe.com/nota/pronostico-hidrico-de-san-juan-estara-listo-en-10-a-15-dias-202611218470"],

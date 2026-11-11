@@ -192,7 +192,7 @@ svg .t{fill:var(--tenue)}
 
     <details class="pie">
       <summary>Fuentes, fechas de cada dato y qué es medido</summary>
-      <p>La generación es dato de CAMMESA: sale del Parte Post Operativo del <span class="fgen"></span>, que informa la energía de cada unidad hora por hora y se publica con uno o dos días de atraso. El tablero muestra la potencia media de la hora elegida; por defecto, la misma hora del día que es ahora. La potencia instalada de los parques grandes es la nominal publicada; en los chicos se usa la potencia disponible que informa CAMMESA. La Olla figura en CAMMESA como central «Ullum». Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. Las posiciones de centrales, aforo y parques provienen de un relevamiento propio sobre imagen satelital y el cauce del río es el de OpenStreetMap (© colaboradores de OpenStreetMap). Siete parques chicos se suman en «Otros» y no están en el mapa porque no tienen ubicación verificada; San Juan Sur solo aparece dentro de la zona Sarmiento. Cartografía: Esri World Imagery y Esri World Topo Map.</p>
+      <p>La generación es dato de CAMMESA: sale del Parte Post Operativo del <span class="fgen"></span>, que informa la energía de cada unidad hora por hora y se publica con uno o dos días de atraso. El tablero muestra la potencia media de la hora elegida; por defecto, la misma hora del día que es ahora. La potencia instalada de los parques grandes es la nominal publicada; en los chicos se usa la potencia disponible que informa CAMMESA. La Olla figura en CAMMESA como central «Ullum». En cada embalse, la franja inferior es la reserva de seguridad, que no se usa; la línea punteada es la cota de seguridad y el borde superior la cota máxima, y el agua se dibuja según la cota entre ambas. Las cotas, volúmenes y caudales son los últimos publicados por Hidráulica y medios de San Juan; cada cifra muestra su fecha. Las posiciones de centrales, aforo y parques provienen de un relevamiento propio sobre imagen satelital y el cauce del río es el de OpenStreetMap (© colaboradores de OpenStreetMap). Siete parques chicos se suman en «Otros» y no están en el mapa porque no tienen ubicación verificada; San Juan Sur solo aparece dentro de la zona Sarmiento. Cartografía: Esri World Imagery y Esri World Topo Map.</p>
       <ul id="fuentes"></ul>
     </details>
   </section>
@@ -259,13 +259,19 @@ curva("cHidro",HID_COD,hidInst,"#4fd0e6"); curva("cSolar",SOL_COD,solInst,"#ffb6
   rio.forEach(c=>{
     const x = X[c.id], dia = `${fmt(delDia([c.gen]))} MWh/día · pico ${mw1(pico([c.gen]))} MW`;
     if(c.cota){
-      const y = Y[c.id], fill = c.pct/100, wy = y+bh*(1-fill), ty = y+bh-8, sig = c.id==="ullum" ? 96 : 96;
+      // Escala del vaso: abajo, la reserva de seguridad (no se usa); de la cota de seguridad a la máxima, lineal en cota.
+      const y = Y[c.id], sec = (c.volMax-c.volUtil)/c.volMax, ys = y+bh*(1-sec), ty = y+bh-8, sig = 96;
+      const niv = Math.max(0,Math.min(1,(c.cota-c.cotaMin)/(c.cotaMax-c.cotaMin))), wy = ys-(ys-y)*niv;
       s += `<path d="M${x},${y} v${bh} h${bw} v${-bh}" fill="none" stroke="#3a4d46" stroke-width="1.5"/>`;
-      s += `<rect x="${x+1}" y="${wy}" width="${bw-2}" height="${bh*fill-1}" fill="url(#ga)" opacity=".9"/>`;
+      s += `<rect x="${x+1}" y="${ys}" width="${bw-2}" height="${y+bh-ys-1}" fill="#1c7d94" opacity=".5"/>`;
+      s += `<rect x="${x+1}" y="${wy}" width="${bw-2}" height="${Math.max(2,ys-wy)}" fill="#8fe3f3"/>`;
+      s += `<line x1="${x-6}" x2="${x+bw}" y1="${ys}" y2="${ys}" stroke="#e3e6d6" stroke-width="1" stroke-dasharray="4 3"/>`;
       s += `<path d="M${x+bw},${y-6} l14,0 l16,${bh+6} h-30 z" fill="#2c3d37"/>`;
-      s += `<line x1="${x-6}" x2="${x+8}" y1="${y}" y2="${y}" stroke="#8c9c93"/><text x="${x+12}" y="${y+4}" font-size="12" class="t">máx ${fmt(c.cotaMax)} msnm</text>`;
-      s += `<text x="${x+bw/2}" y="${wy+30}" font-size="29" font-weight="600" text-anchor="middle" fill="#0e1614">${fmt(c.cota,2)}</text>`;
-      s += `<text x="${x+bw/2}" y="${wy+46}" font-size="12" text-anchor="middle" fill="#0e1614">msnm · ${fch(c.fechaCota)} · mín ${fmt(c.cotaMin)}</text>`;
+      s += `<line x1="${x-6}" x2="${x+8}" y1="${y}" y2="${y}" stroke="#8c9c93"/><text x="${x+12}" y="${y+4}" font-size="12" class="t">cota máxima ${fmt(c.cotaMax)}</text>`;
+      s += `<text x="${x+bw/2}" y="${(y+ys)/2+4}" font-size="12" text-anchor="middle" class="t">faltan ${fmt(c.cotaMax-c.cota,1)} m</text>`;
+      s += `<text x="${x+bw/2}" y="${ys+25}" font-size="25" font-weight="600" text-anchor="middle" fill="#e3e6d6">${fmt(c.cota,2)}</text>`;
+      s += `<text x="${x+bw/2}" y="${ys+38}" font-size="11.5" text-anchor="middle" fill="#e3e6d6">msnm · ${fch(c.fechaCota)}</text>`;
+      s += `<text x="${x+bw/2}" y="${y+bh-6}" font-size="11.5" text-anchor="middle" fill="#bfe9f2">seguridad ${fmt(c.cotaMin)} · +${fmt(c.cota-c.cotaMin,2)} m</text>`;
       s += `<text x="${x}" y="${y-12}" font-size="18" font-weight="600"><tspan fill="#a9c39a" font-size="13" font-weight="400">${c.cod} </tspan>${c.nombre}</text>`;
       s += `<text x="${x}" y="${y+bh+17}" font-size="12.5" class="t">${fmt(c.vol)} de ${fmt(c.volMax)} hm³ (${c.pct} %) · ${fch(c.fechaVol)}</text>`;
       s += `<text x="${x}" y="${y+bh+33}" font-size="12.5" fill="#4fd0e6">${dia}</text>`;
