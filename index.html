@@ -242,7 +242,6 @@ const hora = () => hSel===null ? horaLocal() : hSel;
 /* ---------- textos fijos ---------- */
 document.querySelectorAll(".fgen").forEach(e=>e.textContent = fechaGen);
 $("reserva").textContent = "Cotas y turbinados: CAMMESA, "+fch(D.rio.fechaHid);
-$("rioNota").textContent = "CAMMESA y pronóstico UNSJ";
 $("riego").innerHTML = `<b>${fmt(D.rio.erogacionUllum)} m³/s</b>salen aguas abajo de Quebrada de Ullum (${fch(D.rio.fechaErog)}, CAMMESA). Hidráulica informó el ${fch(D.rio.fecha)} ${fmt(D.rio.riegoTotal,1)} m³/s derivados a riego, con coeficiente ${fmt(D.rio.coef,3)} L/s por ha.`;
 $("fuentes").innerHTML = D.fuentes.map(f=>`<li><a href="${f[1]}" target="_blank" rel="noopener">${f[0]}</a></li>`).join("");
 
@@ -310,24 +309,31 @@ curva("cHidro",HID_COD,hidInst,"#4fd0e6"); curva("cSolar",SOL_COD,solInst,"#ffb6
   $("cascada").innerHTML = s;
 })();
 
-/* ---------- caudal ---------- */
+/* ---------- caudal del río San Juan: serie diaria de CAMMESA, hasta 60 días ---------- */
 (function(){
-  const R = D.rio, P = R.pronosticoUNSJ, max = Math.max(90,R.caudal*1.08), Hh = 86, y = v => 96-v/max*Hh, bw = 34, x0 = 96;
+  const R = D.rio, hoy = new Date(R.fechaHid+"T00:00:00Z"), f0 = Object.keys(HI.dias).sort()[0];
+  const N = Math.max(14,Math.min(60,Math.round((hoy-new Date(f0+"T00:00:00Z"))/864e5)+1));   // hasta 60 días, según lo acumulado
+  const x0 = 96, W = 260, y0 = 96, Hh = 80, paso = W/N, bw = Math.max(2,paso-1), dia = i => new Date(hoy-(N-1-i)*864e5).toISOString().slice(0,10);
+  const v = Array.from({length:N},(_,i)=>{ const d = HI.dias[dia(i)]; return d && d.rio>0 ? d.rio : null; });
+  const con = v.filter(x=>x!==null), max = Math.max(100,Math.ceil(Math.max(...con)*1.1/10)*10), y = q => y0-q/max*Hh;
+  const prono = Object.fromEntries(R.pronosticoUNSJ), mesDe = f => MES[+f.slice(5,7)-1];
   let s = "";
   s += `<text x="0" y="40" font-size="44" font-weight="600" fill="#4fd0e6">${fmt(R.caudal)}</text>`;
   s += `<text x="0" y="58" font-size="13" class="t">m³/s · ${fch(R.fechaCaudal)}</text>`;
-  s += `<text x="0" y="78" font-size="12" class="t">media 7 días: ${fmt(R.media7)}</text>`;
-  s += `<text x="0" y="94" font-size="12" class="t">prevén ${R.proyeccionNoviembre} en nov</text>`;
-  P.forEach((p,i)=>{
-    const x = x0+i*(bw+10);
-    s += `<rect x="${x}" y="${y(p[1])}" width="${bw}" height="${96-y(p[1])}" fill="#1a2622" stroke="#3a4d46"/>`;
-    s += `<text x="${x+bw/2}" y="${y(p[1])-4}" font-size="11.5" text-anchor="middle" class="t">${fmt(p[1])}</text>`;
-    s += `<text x="${x+bw/2}" y="110" font-size="12" text-anchor="middle" class="t">${p[0]}</text>`;
-  });
-  const xn = x0+(bw+10)+bw/2;
-  s += `<line x1="${xn-bw/2-3}" x2="${xn+bw/2+3}" y1="${y(R.caudal)}" y2="${y(R.caudal)}" stroke="#4fd0e6" stroke-width="3"/>`;
-  s += `<line x1="${x0-4}" x2="${x0+bw+4}" y1="${y(R.caudalPrevio)}" y2="${y(R.caudalPrevio)}" stroke="#4fd0e6" stroke-width="2" opacity=".5"/>`;
+  s += `<text x="0" y="78" font-size="12" class="t">día previo: ${fmt(R.caudalPrevio)}</text>`;
+  s += `<text x="0" y="94" font-size="12" class="t">media 7 días: ${fmt(R.media7)}</text>`;
+  [0,max/2,max].forEach(q=>{ s += `<line x1="${x0}" x2="${x0+W}" y1="${y(q)}" y2="${y(q)}" stroke="#2c3d37" stroke-width="1"/><text x="${x0+W+3}" y="${y(q)+4}" font-size="10.5" class="t">${q}</text>`; });
+  // pronóstico mensual de la UNSJ como referencia, por tramos de mes
+  let ini = 0;
+  for(let i=1;i<=N;i++){ if(i===N || mesDe(dia(i))!==mesDe(dia(ini))){ const q = prono[mesDe(dia(ini))];
+      if(q) s += `<line x1="${x0+ini*paso}" x2="${x0+i*paso}" y1="${y(q)}" y2="${y(q)}" stroke="#a9c39a" stroke-width="1.5" stroke-dasharray="4 3"/>`; ini = i; } }
+  v.forEach((q,i)=>{ const x = x0+i*paso;
+    s += q===null ? (HI.dias[dia(i)] ? `<rect x="${x}" y="${y0-2}" width="${bw}" height="2" fill="#5b6b64"/>` : "")
+                  : `<rect x="${x}" y="${y(q)}" width="${bw}" height="${y0-y(q)}" fill="#4fd0e6" opacity="${i===N-1?1:.6}"><title>${fch(dia(i))}: ${fmt(q)} m³/s</title></rect>`; });
+  const primero = Math.max(0,v.findIndex((q,i)=>HI.dias[dia(i)]));
+  [primero,Math.round((primero+N-1)/2),N-1].forEach((i,k)=>{ s += `<text x="${x0+i*paso+(k===2?bw:0)}" y="110" font-size="11" class="t" text-anchor="${k===2?"end":k?"middle":"start"}">${fch(dia(i))}</text>`; });
   $("rio").innerHTML = s;
+  $("rioNota").textContent = `${N} días · punteado: pronóstico UNSJ`;
 })();
 
 /* ---------- zonas solares: la pista mide lo instalado, el relleno lo que generó en la hora ---------- */
@@ -422,7 +428,7 @@ function nivel(){
   [[gParques,cerca],[gDiqC,cerca],[gPolos,!cerca],[gDiqL,!cerca]].forEach(([g,v])=>v?map.addLayer(g):map.removeLayer(g));
   pintar();
 }
-activo({id:"aforo",lat:D.rio.aforo.lat,lon:D.rio.aforo.lon},"q",30,-36,7,"Río San Juan",fmt(D.rio.caudal)+" m³/s · "+fch(D.rio.fechaCaudal));
+activo({id:"aforo",lat:D.rio.aforo.lat,lon:D.rio.aforo.lon},"q",30,-36,7,"Río San Juan",fmt(D.rio.caudal)+" m³/s · "+fch(D.rio.fechaCaudal)+"<br>media 7 días: "+fmt(D.rio.media7));
 activo({id:"tambolar",lat:D.rio.tambolar.lat,lon:D.rio.tambolar.lon},"h",-28,-14,10,"El Tambolar","dique en construcción");
 
 /* ---------- actualización: todo lo que depende de la hora elegida ---------- */
