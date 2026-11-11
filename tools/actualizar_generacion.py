@@ -52,5 +52,63 @@ def main():
     open("generacion.js", "w", encoding="utf-8").write(salida)
     print(f"generacion.js actualizado: parte del {fecha}, {len(u)} unidades")
 
+# ---------- situación diaria de la cuenca (cotas, turbinados, caudal) ----------
+HIDRO = "https://microfe.cammesa.com/static-content/CammesaWeb/download-manager-files/unifilares/hidro/%s/www.cammesa.com/OpenDocument.html"
+CAB_HID = """// Situación diaria de la cuenca del río San Juan según CAMMESA ("Situación de cuencas hidráulicas").
+// Por día: rio = caudal del río San Juan [m3/s]; cada embalse = [cota, cota máx, cota mín, turbinado m3/s, vertido m3/s];
+// laolla = turbinado de la central Ullum (La Olla); erog = caudal aguas abajo de Quebrada de Ullum. Un 0 es dato faltante.
+// Este archivo lo reescribe tools/actualizar_generacion.py; no editar a mano.
+"""
+
+def leer_cuenca(html):
+    s = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html).replace("&nbsp;", " "))
+    o = {}
+    m = re.search(r"RIO SAN JUAN ([\d.]+) m3/s", s)
+    o["rio"] = float(m.group(1)) if m else 0
+    for k, n in (("caracoles", "LOS CARACOLES"), ("puntanegra", "PUNTA NEGRA"), ("ullum", "QUEBRADA DE ULLUM")):
+        m = re.search(n + r" Cota Hoy: ([\d.]+) msnm Cota Max: ([\d.]+) msnm Cota Min: ([\d.]+) msnm Turbinado: ([\d.]+) m3/s Vertido: ([\d.]+) m3/s", s)
+        if not m: return None
+        o[k] = [float(v) for v in m.groups()]
+    m = re.search(r" ULLUM Turbinado: ([\d.]+) m3/s", s)
+    o["laolla"] = float(m.group(1)) if m else 0
+    m = re.search(r"QUEBRADA DE ULLUM Cota Hoy:.*?Vertido: [\d.]+ m3/s ([\d.]+) m3/s", s)
+    o["erog"] = float(m.group(1)) if m else 0
+    return o
+
+def cuenca(archivos=None):
+    import datetime
+    try:
+        src = open("hidraulica.js", encoding="utf-8").read()
+        dias = json.loads(src[src.index("{"):src.rindex("}") + 1])["dias"]
+    except Exception:
+        dias = {}
+    if archivos:                                   # prueba local: fecha=archivo
+        pares = [a.split("=", 1) for a in archivos]
+        nuevos = {f: leer_cuenca(open(p, encoding="utf-8", errors="replace").read()) for f, p in pares}
+    else:
+        nuevos, hoy = {}, datetime.datetime.utcnow() - datetime.timedelta(hours=3)
+        for atras in range(0, 6):
+            d = hoy - datetime.timedelta(days=atras)
+            f = d.strftime("%Y-%m-%d")
+            if atras > 1 and f in dias: continue
+            try:
+                req = urllib.request.Request(HIDRO % d.strftime("%Y%m%d"), headers={"User-Agent": "Mozilla/5.0 (tablero energia-san-juan)"})
+                with urllib.request.urlopen(req, timeout=120) as r:
+                    nuevos[f] = leer_cuenca(r.read().decode("latin-1", "replace"))
+            except Exception as e:
+                print(f"cuenca {f}: sin informe ({e})")
+    n = 0
+    for f, v in nuevos.items():
+        if v: dias[f] = v; n += 1
+    if not dias: return print("cuenca: sin datos; no se actualiza")
+    dias = dict(sorted(dias.items())[-60:])        # se guardan los últimos 60 días
+    open("hidraulica.js", "w", encoding="utf-8").write(CAB_HID + "window.HID = " + json.dumps({"dias": dias}, separators=(",", ":")) + ";\n")
+    print(f"hidraulica.js: {n} días leídos, último {max(dias)}")
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "--cuenca":
+        cuenca(sys.argv[2:])
+    else:
+        try: main()
+        except SystemExit as e: print("generación:", e)
+        if len(sys.argv) == 1: cuenca()

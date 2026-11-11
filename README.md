@@ -4,6 +4,7 @@ Tablero de una sola pantalla con la generación renovable de San Juan: cotas de 
 
 - `index.html`: el tablero (funciona en GitHub Pages). El mapa usa Leaflet (incluido en `vendor/`) con teselas de Esri.
 - `datos.js`: centrales, parques, cotas y caudales, con fecha y fuente. Para actualizar, editar ese archivo.
+- `hidraulica.js`: cotas, turbinados y caudal diarios del informe «Situación de cuencas hidráulicas» de CAMMESA (mismo proceso).
 - `generacion.js`: generación horaria por unidad del Parte Post Operativo de CAMMESA. Lo reescribe `tools/actualizar_generacion.py`, que corre a diario desde GitHub Actions.
 
 Qué es medido y qué es estimado:

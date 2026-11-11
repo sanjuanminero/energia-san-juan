@@ -27,16 +27,18 @@ window.DATOS = {
   // Centrales hidroeléctricas. gen = código de la unidad en el parte de CAMMESA; mw = potencia instalada.
   // Las que tienen embalse llevan cota y volumen (últimos publicados, con fecha).
   // cotaMin = cota de seguridad (debajo queda la reserva que no se usa); cotaMax = cota máxima del embalse;
-  // volUtil = capacidad útil entre ambas cotas.
+  // volUtil = capacidad útil entre ambas cotas. Cota, mínima y máxima se reemplazan por las del parte diario de CAMMESA (hidraulica.js).
+  // resFrac = parte del vaso bajo la cota mínima, para el dibujo: (volMax - volUtil)/volMax en Caracoles y Punta Negra;
+  // en Ullum es aproximada (33 hm3 a cota 749 según Diario de Cuyo, 2015).
   hidro: [
     { id: "caracoles", cod: "H-01", gen: "CCOLHI", nombre: "Los Caracoles", lat: -31.51934, lon: -68.98292, mw: 125,
-      cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1110, vol: 250, volMax: 545, volUtil: 293, pct: 46, fechaVol: "2026-09-07" },
+      cota: 1081.67, fechaCota: "2026-09-07", cotaMin: 1080, cotaMax: 1110, vol: 250, volMax: 545, volUtil: 293, resFrac: 0.46, pct: 46, fechaVol: "2026-09-07" },
     { id: "puntanegra", cod: "H-02", gen: "PNEGHI", nombre: "Punta Negra", lat: -31.51742, lon: -68.81752, mw: 65,
-      cota: 924.11, fechaCota: "2026-10-03", cotaMin: 920, cotaMax: 950, vol: 230, volMax: 505, volUtil: 309, pct: 46, fechaVol: "2026-09-07" },
+      cota: 924.11, fechaCota: "2026-10-03", cotaMin: 920, cotaMax: 950, vol: 230, volMax: 505, volUtil: 309, resFrac: 0.39, pct: 46, fechaVol: "2026-09-07" },
     // La Olla figura en CAMMESA como central "Ullum" (ULLUHI); central de pasada, sin embalse propio
     { id: "laolla", cod: "H-03", gen: "ULLUHI", nombre: "La Olla", lat: -31.45559, lon: -68.75598, mw: 40 },
     { id: "ullum", cod: "H-04", gen: "QULLHI", nombre: "Quebrada de Ullum", lat: -31.47469, lon: -68.65012, mw: 44,
-      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768, vol: 156, volMax: 312, volUtil: 179, pct: 50, fechaVol: "2026-09-07" },
+      cota: 760.33, fechaCota: "2026-10-03", cotaMin: 760, cotaMax: 768, vol: 156, volMax: 312, volUtil: 179, resFrac: 0.10, pct: 50, fechaVol: "2026-09-07" },
     { id: "cdv", cod: "H-05", gen: "CVIEHI", nombre: "Cuesta del Viento", lat: -30.18, lon: -69.07, mw: 10, rio: "Jáchal" }
   ],
   minis: [["SAL2HI", "Salto de la Loma"], ["SALOHI", "Salto de la Loma (unidad 1)"], ["SGUIHI", "San Guillermo"]],
@@ -90,6 +92,7 @@ window.DATOS = {
     ["Ullum Alfa e Iglesia híbrido (6 nov)", "https://www.diarioelzondasj.com.ar/economia/el-crecimiento-de-los-parques-solares-en-san-juan-el-avance-hacia-sistemas-hibridos-con-almacenamiento-y-el-impacto-de-los-fondos-mineros"],
     ["Identificación de parques: Global Energy Monitor", "https://www.gem.wiki/Ullum_Photovoltaic_Solar_Park"],
     ["Parques solares de San Juan: EPSE", "https://www.epsesanjuan.com.ar/index.php/web/energia/solar/2"],
+    ["Cotas, turbinados y caudal diarios: Situación de cuencas hidráulicas, CAMMESA", "https://cammesaweb.cammesa.com/programacion-diaria/"],
     ["Generación horaria por central: Parte Post Operativo de CAMMESA", "https://cammesaweb.cammesa.com/parte-post-operativo/"],
     ["Listado de unidades renovables por provincia: CAMMESA", "https://cammesaweb.cammesa.com/erenovables/"]
   ]

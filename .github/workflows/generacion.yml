@@ -1,8 +1,9 @@
-name: Actualizar generación (CAMMESA)
+name: Actualizar datos de CAMMESA
 on:
   schedule:
-    - cron: "40 1 * * *"    # 22:40 de San Juan: el parte suele publicarse cerca de las 21 h
+    - cron: "40 1 * * *"    # 22:40 de San Juan: el parte de generación suele publicarse cerca de las 21 h
     - cron: "10 11 * * *"   # 08:10, por si se publicó tarde
+    - cron: "25 15 * * *"   # 12:25: la situación de cuencas del día sale cerca de las 11-12 h
   workflow_dispatch:
 permissions:
   contents: write
@@ -13,8 +14,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: python3 tools/actualizar_generacion.py
       - run: |
-          if git diff --quiet generacion.js; then echo "Sin cambios"; exit 0; fi
+          if git diff --quiet generacion.js hidraulica.js; then echo "Sin cambios"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Generación CAMMESA: parte del $(grep -o '"fecha":"[0-9-]*"' generacion.js | cut -d'"' -f4)" generacion.js
+          git commit -m "Datos CAMMESA: generación y cuenca al $(date -u -d '-3 hours' +%F)" generacion.js hidraulica.js
           git push
