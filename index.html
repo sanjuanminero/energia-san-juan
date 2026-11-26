@@ -64,7 +64,7 @@ h1{font-family:var(--num);font-weight:700;font-size:clamp(24px,2.3vw,36px);line-
 .act.h{--c:var(--agua);--g:rgba(79,208,230,.55)} .act.s{--c:var(--sol);--g:rgba(255,182,39,.6)} .act.q{--c:var(--agua)}
 .act.h .sym i::after{content:"";width:9px;height:9px;background:var(--agua);transform:rotate(45deg)}
 .act.s .sym i::after{content:"";width:46%;height:46%;border-radius:50%;background:var(--sol);opacity:calc(.25 + var(--f)*.75)}
-.act .tag{position:absolute;white-space:nowrap;background:rgba(10,16,15,.9);border-left:3px solid var(--c);padding:2px 8px 3px;font-family:var(--num);line-height:1.15}
+.act .tag{position:absolute;white-space:nowrap;transition:left .25s,top .25s;background:rgba(10,16,15,.9);border-left:3px solid var(--c);padding:2px 8px 3px;font-family:var(--num);line-height:1.15}
 .act .tag b{font-size:14.5px;font-weight:600;color:var(--texto);display:block}
 .act .tag b small{font-weight:400;color:var(--hud);margin-right:5px;font-size:12px}
 .act .tag span{display:block;font-size:13px;color:var(--c);font-variant-numeric:tabular-nums}
@@ -120,13 +120,15 @@ svg .t{fill:var(--tenue)}
   .titulo p{display:none}
   .datos{padding:16px}
   .tope{grid-template-columns:1fr 1fr}.reloj{grid-column:1/-1;text-align:left;display:flex;gap:12px;align-items:baseline}
-  .cascada{overflow-x:auto}.cascada svg{height:300px;flex:none;min-width:720px}
+  .cascada svg{height:auto;flex:none}
   .bajo{grid-template-columns:1fr}.pie ul{columns:1}
   .polo{grid-template-columns:80px 1fr 96px}.polo .pq{display:none}
 }
 @media (max-width:600px){
   .mapa{height:140vw}.capas{bottom:22px}
   .act .tag span{display:none}.act .tag b{font-size:12.5px}.act .tag b small{display:none}
+  .tope{gap:16px}.total small{min-height:2.8em}
+  h2 small{display:block;margin:2px 0 0}
 }
 @media (prefers-reduced-motion:reduce){.rio,.chorro{animation:none}.polo .barra i{transition:none}}
 </style>
@@ -169,7 +171,7 @@ svg .t{fill:var(--tenue)}
 
     <div class="cascada">
       <h2>Centrales del río San Juan, río abajo<small id="reserva"></small></h2>
-      <svg id="cascada" viewBox="0 0 880 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Cotas y potencia de Los Caracoles, Punta Negra, La Olla y Quebrada de Ullum"></svg>
+      <svg id="cascada" viewBox="0 0 880 306" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Cotas y potencia de Los Caracoles, Punta Negra, La Olla y Quebrada de Ullum"></svg>
       <p class="fuera" id="fuera"></p>
     </div>
 
@@ -208,10 +210,14 @@ const D = window.DATOS, G = window.GEN, HI = window.HID, $ = id => document.getE
 // Situación diaria de la cuenca (CAMMESA): último día con datos, y el anterior para la variación de cota
 (function(){
   const fs = Object.keys(HI.dias).sort(), hoy = fs[fs.length-1], a = HI.dias[hoy], ant = HI.dias[fs[fs.length-2]] || a;
-  D.hidro.forEach(c=>{ const e = a[c.id]; if(Array.isArray(e)){ [c.cota,c.cotaMax,c.cotaMin,c.turb,c.vert] = e; if(c.cotaSeg) c.cotaMin = c.cotaSeg; c.fechaCota = hoy; c.delta = e[0]-ant[c.id][0]; } else if(c.id==="laolla") c.turb = a.laolla; });
+  D.hidro.forEach(c=>{ const e = a[c.id]; if(Array.isArray(e)){ [c.cota,c.cotaMax,c.cotaMin,c.turb,c.vert] = e; if(c.cotaSeg) c.cotaMin = c.cotaSeg; c.fechaCota = hoy; c.delta = e[0]-ant[c.id][0]; }
+    // CAMMESA a veces informa el turbinado en cero (dato faltante): se usa el último día que lo trae, con su fecha
+    const tb = f => c.id==="laolla" ? HI.dias[f].laolla : (HI.dias[f][c.id]||[])[3], ft = fs.filter(f=>tb(f)>0).pop();
+    if(ft && (Array.isArray(e) || c.id==="laolla")){ c.turb = tb(ft); c.fechaTurb = ft; c.turbViejo = ft!==hoy; } });
+  const fe = fs.filter(f=>HI.dias[f].erog>0).pop();
   const conRio = fs.filter(f=>HI.dias[f].rio>0), fr = conRio[conRio.length-1], ult7 = conRio.slice(-7).map(f=>HI.dias[f].rio);
   Object.assign(D.rio,{caudal:HI.dias[fr].rio, fechaCaudal:fr, caudalPrevio:conRio.length>1?HI.dias[conRio[conRio.length-2]].rio:HI.dias[fr].rio,
-    media7:ult7.reduce((x,y)=>x+y,0)/ult7.length, erogacionUllum:a.erog||D.rio.erogacionUllum, fechaErog:a.erog?hoy:D.rio.fecha, fechaHid:hoy});
+    media7:ult7.reduce((x,y)=>x+y,0)/ult7.length, erogacionUllum:fe?HI.dias[fe].erog:D.rio.erogacionUllum, fechaErog:fe||D.rio.fecha, fechaHid:hoy});
 })();
 const fmt = (n,d=0) => n.toLocaleString("es-AR",{minimumFractionDigits:d,maximumFractionDigits:d});
 const mw1 = n => fmt(n, n>0 && n<10 ? 1 : 0);
@@ -241,7 +247,8 @@ const hora = () => hSel===null ? horaLocal() : hSel;
 
 /* ---------- textos fijos ---------- */
 document.querySelectorAll(".fgen").forEach(e=>e.textContent = fechaGen);
-$("reserva").textContent = "Cotas y turbinados: CAMMESA, "+fch(D.rio.fechaHid);
+{ const tv = D.hidro.find(c=>c.turbViejo);
+  $("reserva").textContent = tv ? "CAMMESA · cotas del "+fch(D.rio.fechaHid)+", turbinados del "+fch(tv.fechaTurb) : "Cotas y turbinados: CAMMESA, "+fch(D.rio.fechaHid); }
 $("riego").innerHTML = `<b>${fmt(D.rio.erogacionUllum)} m³/s</b>salen aguas abajo de Quebrada de Ullum (${fch(D.rio.fechaErog)}, CAMMESA). Hidráulica informó el ${fch(D.rio.fecha)} ${fmt(D.rio.riegoTotal,1)} m³/s derivados a riego, con coeficiente ${fmt(D.rio.coef,3)} L/s por ha.`;
 $("fuentes").innerHTML = D.fuentes.map(f=>`<li><a href="${f[1]}" target="_blank" rel="noopener">${f[0]}</a></li>`).join("");
 
@@ -256,9 +263,13 @@ function curva(id,cs,inst,color){
 curva("cHidro",HID_COD,hidInst,"#4fd0e6"); curva("cSolar",SOL_COD,solInst,"#ffb627");
 
 /* ---------- cascada del río San Juan: Caracoles → Punta Negra → La Olla → Quebrada de Ullum ---------- */
-(function(){
-  const rio = H.filter(c=>!c.rio), bw=138, bh=150, mwMax = Math.max(...rio.map(c=>c.mw));
-  const X = {caracoles:8, puntanegra:242, laolla:476, ullum:636}, Y = {caracoles:34, puntanegra:60, ullum:92};
+const mqV = matchMedia("(max-width:760px)");   // pantallas angostas: las centrales se apilan, una debajo de la otra
+function cascada(){
+  const rio = H.filter(c=>!c.rio), bw=138, bh=150, mwMax = Math.max(...rio.map(c=>c.mw)), vert = mqV.matches;
+  const X = vert ? {caracoles:8, puntanegra:8, laolla:8, ullum:8} : {caracoles:8, puntanegra:242, laolla:476, ullum:636},
+        Y = vert ? {caracoles:34, puntanegra:256, ullum:642} : {caracoles:34, puntanegra:60, ullum:92}, tyO = vert ? 515 : Y.puntanegra+bh-8;
+  const turbTxt = c => c.turb ? fmt(c.turb)+" m³/s" : "sin dato";
+  $("cascada").setAttribute("viewBox", vert ? "0 0 300 860" : "0 0 880 306");
   let s = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd0e6"/><stop offset="1" stop-color="#1c7d94"/></linearGradient></defs>`;
   const medidor = (c,tx,ty,barW) => `<text x="${tx}" y="${ty-52}" font-size="26" font-weight="600" fill="#4fd0e6"><tspan id="c_mw_${c.id}">0</tspan><tspan font-size="14" dx="3">MW</tspan></text>
     <text x="${tx}" y="${ty-37}" font-size="12" class="t" id="c_pc_${c.id}"></text>
@@ -277,43 +288,46 @@ curva("cHidro",HID_COD,hidInst,"#4fd0e6"); curva("cSolar",SOL_COD,solInst,"#ffb6
       if(!bajo) s += `<rect x="${x+1}" y="${wy}" width="${bw-2}" height="${Math.max(2,ys-wy)}" fill="#8fe3f3"/>`;
       s += `<line x1="${x-6}" x2="${x+bw}" y1="${ys}" y2="${ys}" stroke="#e3e6d6" stroke-width="1" stroke-dasharray="4 3"/>`;
       s += `<path d="M${x+bw},${y-6} l14,0 l16,${bh+6} h-30 z" fill="#2c3d37"/>`;
-      s += `<line x1="${x-6}" x2="${x+8}" y1="${y}" y2="${y}" stroke="#8c9c93"/><text x="${x+12}" y="${y+4}" font-size="12" class="t">cota máxima ${fmt(c.cotaMax)}</text>`;
-      s += `<text x="${x+bw/2}" y="${(y+Math.min(wy,ys))/2+4}" font-size="12" text-anchor="middle" class="t">faltan ${fmt(c.cotaMax-c.cota,1)} m</text>`;
-      // la cota va dentro del agua útil si hay lugar; si no, sobre el volumen bajo la mínima
-      const enAgua = ys-wy >= 46, cy = enAgua ? wy+27 : Math.max(ys,wy)+25, col = enAgua ? "#0e1614" : "#e3e6d6";
+      // "faltan X m" va en el hueco sobre el agua; si el embalse está casi lleno no entra y se suma al rótulo de cota máxima
+      const hueco = Math.min(wy,ys)-y, falta = `faltan ${fmt(c.cotaMax-c.cota,1)} m`;
+      s += `<line x1="${x-6}" x2="${x+8}" y1="${y}" y2="${y}" stroke="#8c9c93"/><text x="${x+12}" y="${y+4}" font-size="12" class="t">${hueco<34 ? "máx. "+fmt(c.cotaMax)+" · "+falta : "cota máxima "+fmt(c.cotaMax)}</text>`;
+      if(hueco>=34) s += `<text x="${x+bw/2}" y="${y+10+(hueco-10)/2+4}" font-size="12" text-anchor="middle" class="t">${falta}</text>`;
+      // Tres textos (cota, fecha, seguridad) y dos lugares (agua útil arriba, reserva abajo): cada uno va donde entra entero.
+      const franja = ys-wy, enAgua = franja >= 42, todo = franja >= 60, cy = enAgua ? wy+26 : Math.max(ys,wy)+25, col = enAgua ? "#0e1614" : "#e3e6d6";
       s += `<text x="${x+bw/2}" y="${cy}" font-size="25" font-weight="600" text-anchor="middle" style="fill:${col}">${fmt(c.cota,2)}</text>`;
       s += `<text x="${x+bw/2}" y="${cy+13}" font-size="11.5" text-anchor="middle" style="fill:${col}">msnm · ${fch(c.fechaCota)}</text>`;
-      s += `<text x="${x+bw/2}" y="${enAgua ? ys-5 : y+bh-6}" font-size="11.5" text-anchor="middle" style="fill:${enAgua ? "#0e1614" : "#bfe9f2"}">seguridad ${fmt(c.cotaMin)} · ${margen}</text>`;
+      s += `<text x="${x+bw/2}" y="${todo ? ys-6 : enAgua ? ys+16 : y+bh-6}" font-size="11.5" text-anchor="middle" style="fill:${todo ? "#0e1614" : "#bfe9f2"}">seguridad ${fmt(c.cotaMin)} · ${margen}</text>`;
       s += `<text x="${x}" y="${y-12}" font-size="18" font-weight="600"><tspan fill="#a9c39a" font-size="13" font-weight="400">${c.cod} </tspan>${c.nombre}</text>`;
-      s += `<text x="${x}" y="${y+bh+17}" font-size="12.5" class="t">${c.delta>=0?"▲":"▼"} ${fmt(Math.abs(c.delta),2)} m desde ayer · turbina ${fmt(c.turb)} m³/s</text>`;
+      s += `<text x="${x}" y="${y+bh+17}" font-size="12.5" class="t">${c.delta>=0?"▲":"▼"} ${fmt(Math.abs(c.delta),2)} m desde ayer · turbina ${turbTxt(c)}</text>`;
       s += `<text x="${x}" y="${y+bh+33}" font-size="12.5" fill="#4fd0e6">${dia}</text>`;
-      s += medidor(c,x+bw+34,ty,sig-26);
-      s += `<path d="M${x+bw+22},${ty} h${sig-34} ${c.id==="puntanegra"?"":"v24"}" fill="none" stroke="#4fd0e6" stroke-width="3" stroke-dasharray="3 7" class="chorro"/>`;
+      s += medidor(c,x+bw+34,ty,sig-46);
+      s += `<path d="M${x+bw+22},${ty} h${sig-34} ${c.id==="puntanegra"&&!vert?"":"v24"}" fill="none" stroke="#4fd0e6" stroke-width="3" stroke-dasharray="3 7" class="chorro"/>`;
       if(c.id==="ullum"){
-        s += `<text x="${x+bw+sig-10}" y="${ty+47}" font-size="24" font-weight="600" fill="#a9c39a" text-anchor="end">${fmt(D.rio.erogacionUllum)}<tspan font-size="13" dx="3">m³/s</tspan></text>`;
-        s += `<text x="${x+bw+sig-10}" y="${ty+62}" font-size="12" class="t" text-anchor="end">aguas abajo · ${fch(D.rio.fechaErog)}</text>`;
+        s += `<text x="${x+bw+sig-10}" y="${ty+53}" font-size="24" font-weight="600" fill="#a9c39a" text-anchor="end">${fmt(D.rio.erogacionUllum)}<tspan font-size="13" dx="3">m³/s</tspan></text>`;
+        s += `<text x="${x+bw+sig-10}" y="${ty+68}" font-size="12" class="t" text-anchor="end">aguas abajo · ${fch(D.rio.fechaErog)}</text>`;
       }
     } else {                             // central de pasada: casa de máquinas sobre el río, sin embalse
-      const ty = Y.puntanegra+bh-8, w = 88;
+      const ty = tyO, w = 88;
       s += `<rect x="${x}" y="${ty-24}" width="${w}" height="48" fill="#1a2622" stroke="#4fd0e6" stroke-width="1.5"/>`;
       s += `<text x="${x+w/2}" y="${ty+8}" font-size="24" font-weight="600" text-anchor="middle" fill="#4fd0e6"><tspan id="c_mw_${c.id}">0</tspan><tspan font-size="13" dx="3">MW</tspan></text>`;
       s += `<text x="${x}" y="${ty-48}" font-size="18" font-weight="600"><tspan fill="#a9c39a" font-size="13" font-weight="400">${c.cod} </tspan>${c.nombre}</text>`;
-      s += `<text x="${x}" y="${ty-32}" font-size="12" class="t">de pasada · ${fmt(c.turb)} m³/s</text>`;
+      s += `<text x="${x}" y="${ty-32}" font-size="12" class="t">de pasada · ${turbTxt(c)}</text>`;
       s += `<text x="${x}" y="${ty+40}" font-size="12" class="t" id="c_pc_${c.id}"></text>`;
       s += `<rect x="${x}" y="${ty+46}" width="${w*c.mw/mwMax*1.6}" height="9" fill="#1a2622" stroke="#1c7d94"/><rect x="${x}" y="${ty+46}" width="0" height="9" fill="#4fd0e6" id="c_bar_${c.id}" data-w="${w*c.mw/mwMax*1.6}"/>`;
       s += `<text x="${x}" y="${ty+72}" font-size="12.5" fill="#4fd0e6">${fmt(delDia([c.gen]))} MWh en el día</text>`;
       s += `<text x="${x}" y="${ty+87}" font-size="12.5" fill="#4fd0e6">pico ${mw1(pico([c.gen]))} MW</text>`;
-      s += `<path d="M${x+w},${ty} h${X.ullum-x-w-12} v24" fill="none" stroke="#4fd0e6" stroke-width="3" stroke-dasharray="3 7" class="chorro"/>`;
+      s += `<path d="M${x+w},${ty} h${vert?40:X.ullum-x-w-12} v24" fill="none" stroke="#4fd0e6" stroke-width="3" stroke-dasharray="3 7" class="chorro"/>`;
     }
   });
   $("cascada").innerHTML = s;
-})();
+}
+cascada();
 
 /* ---------- caudal del río San Juan: serie diaria de CAMMESA, hasta 60 días ---------- */
 (function(){
   const R = D.rio, hoy = new Date(R.fechaHid+"T00:00:00Z"), f0 = Object.keys(HI.dias).sort()[0];
   const N = Math.max(14,Math.min(60,Math.round((hoy-new Date(f0+"T00:00:00Z"))/864e5)+1));   // hasta 60 días, según lo acumulado
-  const x0 = 96, W = 260, y0 = 96, Hh = 80, paso = W/N, bw = Math.max(2,paso-1), dia = i => new Date(hoy-(N-1-i)*864e5).toISOString().slice(0,10);
+  const x0 = 96, W = 240, y0 = 96, Hh = 80, paso = W/N, bw = Math.max(2,paso-1), dia = i => new Date(hoy-(N-1-i)*864e5).toISOString().slice(0,10);
   const v = Array.from({length:N},(_,i)=>{ const d = HI.dias[dia(i)]; return d && d.rio>0 ? d.rio : null; });
   const con = v.filter(x=>x!==null), max = Math.max(100,Math.ceil(Math.max(...con)*1.1/10)*10), y = q => y0-q/max*Hh;
   const prono = Object.fromEntries(R.pronosticoUNSJ), mesDe = f => MES[+f.slice(5,7)-1];
@@ -374,20 +388,27 @@ document.querySelectorAll("#vistas button").forEach(b=>b.addEventListener("click
 VISTAS.prov();
 ponerCapa("sat");
 
+// recuadros fijos sobre el mapa (título, botones, zoom, escala), en píxeles del contenedor
+function cajasFijas(){
+  const cr = map.getContainer().getBoundingClientRect();
+  return [...document.querySelectorAll(".mapa .titulo,.mapa .capas,.mapa .leaflet-control-zoom,.mapa .leaflet-control-scale")]
+    .map(e=>{ const r = e.getBoundingClientRect(); return [r.left-cr.left-4,r.top-cr.top-4,r.right-cr.left+4,r.bottom-cr.top+4]; });
+}
 // retícula geográfica
 const grat = L.layerGroup().addTo(map);
 function reticula(){
   grat.clearLayers();
   const z = map.getZoom(), b = map.getBounds(), st = z<7.5?1:z<9.5?.5:z<11?.25:z<12.5?.1:z<14?.05:.01, dec = st<.1?2:st<1?(st===.25?2:1):0;
   const estilo = {color:"#a9c39a",weight:1,opacity:.32,interactive:false};
+  const tapa = cajasFijas(), libre = (x,y,w) => !tapa.some(o=>x<o[2] && x+w>o[0] && y<o[3] && y+16>o[1]);
   const sz = map.getSize(), ladoE = map.containerPointToLatLng([sz.x-58,0]).lng, ladoN = map.containerPointToLatLng([0,sz.y-30]).lat;
   for(let lo=Math.ceil(b.getWest()/st)*st; lo<=b.getEast(); lo+=st){
     L.polyline([[b.getSouth(),lo],[b.getNorth(),lo]],estilo).addTo(grat);
-    L.marker([ladoN,lo],{interactive:false,icon:L.divIcon({className:"grat",html:Math.abs(lo).toFixed(dec).replace(".",",")+"° O",iconSize:[0,0],iconAnchor:[-3,0]})}).addTo(grat);
+    if(libre(map.latLngToContainerPoint([ladoN,lo]).x,sz.y-30,52)) L.marker([ladoN,lo],{interactive:false,icon:L.divIcon({className:"grat",html:Math.abs(lo).toFixed(dec).replace(".",",")+"° O",iconSize:[0,0],iconAnchor:[-3,0]})}).addTo(grat);
   }
   for(let la=Math.ceil(b.getSouth()/st)*st; la<=b.getNorth(); la+=st){
     L.polyline([[la,b.getWest()],[la,b.getEast()]],estilo).addTo(grat);
-    L.marker([la,ladoE],{interactive:false,icon:L.divIcon({className:"grat",html:Math.abs(la).toFixed(dec).replace(".",",")+"° S",iconSize:[0,0],iconAnchor:[0,16]})}).addTo(grat);
+    if(libre(sz.x-58,map.latLngToContainerPoint([la,ladoE]).y-16,52)) L.marker([la,ladoE],{interactive:false,icon:L.divIcon({className:"grat",html:Math.abs(la).toFixed(dec).replace(".",",")+"° S",iconSize:[0,0],iconAnchor:[0,16]})}).addTo(grat);
   }
 }
 map.on("moveend",reticula); reticula();
@@ -405,12 +426,45 @@ map.on("zoom",()=>{ if(rRio._map){ rRio._onZoomEnd(); rRio._update(); } });
 if(flujo.getElement()) flujo.getElement().style.setProperty("--dur",(1.6*61/D.rio.caudal).toFixed(2)+"s");
 
 // símbolos con etiqueta y línea guía
+const ACT = [];
 function activo(p,tipo,dx,dy,r,l1,l2){
   const der = dx>=0, html = `<div class="act ${tipo}" id="a_${tipo}_${p.id}" style="--f:${p.f||0}">
     <svg class="lead" width="1" height="1"><line x1="0" y1="0" x2="${dx}" y2="${dy}"/></svg>
     <div class="sym" style="width:${r*2}px;height:${r*2}px"><i></i></div>
     <div class="tag" style="${der?"left:"+dx+"px":"right:"+(-dx)+"px"};top:${dy-18}px"><b>${l1}</b><span id="t_${tipo}_${p.id}">${l2}</span></div></div>`;
-  return L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",html,iconSize:[0,0]}),interactive:false,keyboard:false}).addTo(p.grupo||map);
+  const m = L.marker([p.lat,p.lon],{icon:L.divIcon({className:"",html,iconSize:[0,0]}),interactive:false,keyboard:false}).addTo(p.grupo||map);
+  ACT.push({m,dx,dy}); return m;
+}
+// Acomoda las etiquetas visibles: cada una prueba su posición de diseño y, si pisa otra etiqueta, un símbolo,
+// un recuadro fijo o el borde del mapa, gira alrededor de su símbolo hasta la posición libre más cercana.
+function acomodar(){
+  const sz = map.getSize(), fijos = cajasFijas(), puestos = [];
+  const vis = ACT.filter(a=>a.m._map && a.m._icon).map(a=>{
+    const ic = a.m._icon, tag = ic.querySelector(".tag"), pt = map.latLngToContainerPoint(a.m.getLatLng());
+    return {a,ic,tag,pt,w:tag.offsetWidth,h:tag.offsetHeight,r:ic.querySelector(".sym").offsetWidth/2+3};
+  });
+  const syms = vis.map(v=>[v.pt.x-v.r,v.pt.y-v.r,v.pt.x+v.r,v.pt.y+v.r]);
+  const pisa = (A,B) => Math.max(0,Math.min(A[2],B[2])-Math.max(A[0],B[0]))*Math.max(0,Math.min(A[3],B[3])-Math.max(A[1],B[1]));
+  vis.forEach(v=>{
+    const {a} = v, caja = (dx,dy) => { const x = v.pt.x+(dx>=0?dx:dx-v.w), y = v.pt.y+dy-18; return [x-3,y-2,x+v.w+3,y+v.h+2]; };
+    let el = [a.dx,a.dy];
+    if(v.pt.x>-20 && v.pt.y>-20 && v.pt.x<sz.x+20 && v.pt.y<sz.y+20){       // los símbolos fuera de cuadro quedan como están
+      const base = Math.max(34,Math.hypot(a.dx,a.dy)), cands = [[a.dx,a.dy]];
+      [1,1.45,.7,2,2.7].forEach(k=>{ for(let i=0;i<16;i++) cands.push([Math.round(Math.cos(i*Math.PI/8)*base*k),Math.round(Math.sin(i*Math.PI/8)*base*k)]); });
+      let mc = Infinity;
+      cands.forEach(([dx,dy])=>{
+        const b = caja(dx,dy);
+        let c = (Math.max(0,4-b[0])+Math.max(0,b[2]-sz.x+4))*v.h + (Math.max(0,4-b[1])+Math.max(0,b[3]-sz.y+18))*v.w;
+        fijos.forEach(o=>c += pisa(b,o)); syms.forEach(o=>c += pisa(b,o)); puestos.forEach(o=>c += pisa(b,o));
+        c = c*100 + Math.hypot(dx-a.dx,dy-a.dy);
+        if(c<mc){ mc = c; el = [dx,dy]; }
+      });
+    }
+    const [dx,dy] = el;
+    v.tag.style.left = (dx>=0?dx:dx-v.w)+"px"; v.tag.style.right = "auto"; v.tag.style.top = (dy-18)+"px";
+    const ln = v.ic.querySelector(".lead line"); ln.setAttribute("x2",dx); ln.setAttribute("y2",dy);
+    puestos.push(caja(dx,dy));
+  });
 }
 // centrales: una disposición de etiquetas para la vista lejana y otra para la cercana
 const gDiqL = L.layerGroup(), gDiqC = L.layerGroup();
@@ -426,7 +480,7 @@ D.solar.parques.forEach(q=>activo({...q,grupo:gParques},"s",q.off[0],q.off[1],8+
 function nivel(){
   const cerca = map.getZoom()>=9.75;
   [[gParques,cerca],[gDiqC,cerca],[gPolos,!cerca],[gDiqL,!cerca]].forEach(([g,v])=>v?map.addLayer(g):map.removeLayer(g));
-  pintar();
+  pintar(); acomodar();
 }
 activo({id:"aforo",lat:D.rio.aforo.lat,lon:D.rio.aforo.lon},"q",30,-36,7,"Río San Juan",fmt(D.rio.caudal)+" m³/s · "+fch(D.rio.fechaCaudal)+"<br>media 7 días: "+fmt(D.rio.media7));
 activo({id:"tambolar",lat:D.rio.tambolar.lat,lon:D.rio.tambolar.lon},"h",-28,-14,10,"El Tambolar","dique en construcción");
@@ -471,14 +525,17 @@ function pintar(){
   $("horaSim").textContent = hSel===null ? "misma hora que ahora" : "hora elegida";
   $("slider").value = h;
 }
-(function sube(t){ anim = Math.min(1,(t-t0)/1400); anim = 1-Math.pow(1-anim,3); pintar(); if(anim<1) requestAnimationFrame(sube); })(t0);
+(function sube(t){ anim = Math.min(1,(t-t0)/1400); anim = 1-Math.pow(1-anim,3); pintar(); if(anim<1) requestAnimationFrame(sube); else acomodar(); })(t0);
 
-function fijar(h){ hSel = h; $("ahora").setAttribute("aria-pressed",h===null); pintar(); }
+function fijar(h){ hSel = h; $("ahora").setAttribute("aria-pressed",h===null); pintar(); acomodar(); }
 $("slider").addEventListener("input",e=>fijar(+e.target.value));
 $("ahora").addEventListener("click",()=>fijar(null));
 setInterval(()=>{ if(hSel===null) pintar(); },60000);
-addEventListener("resize",()=>map.invalidateSize());
+addEventListener("resize",()=>{ map.invalidateSize(); reticula(); acomodar(); });
+mqV.addEventListener("change",()=>{ cascada(); pintar(); });
+map.on("moveend",acomodar);
 map.on("zoomend",nivel); nivel();
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ reticula(); acomodar(); });
 })();
 </script>
 </body>
