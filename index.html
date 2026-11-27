@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Energía San Juan — agua y sol en vivo</title>
+<meta name="author" content="DAMS SRL">
 <meta name="description" content="Tablero de generación renovable de San Juan: cotas de los diques, caudal del río San Juan, potencia hidroeléctrica y parques solares sobre cartografía satelital.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,6 +33,8 @@ button{font:inherit}
 .titulo{position:absolute;z-index:500;left:12px;top:12px;padding:10px 14px 9px;max-width:calc(100% - 24px);pointer-events:none}
 h1{font-family:var(--num);font-weight:700;font-size:clamp(24px,2.3vw,36px);line-height:.95;margin:0}
 .titulo p{margin:5px 0 0;font-size:12px;color:var(--tenue)}
+.firma{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:11.5px;color:var(--tenue);text-decoration:none;pointer-events:auto;width:max-content}
+.firma img{height:17px;width:auto;display:block}
 .titulo p span{margin-right:14px;white-space:nowrap}
 .capas{position:absolute;z-index:500;left:12px;bottom:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .grupo{display:flex}
@@ -140,6 +143,7 @@ svg .t{fill:var(--tenue)}
     <i class="esq a"></i><i class="esq b"></i><i class="esq c"></i><i class="esq d"></i><i class="mira"></i>
     <div class="titulo hudbox">
       <h1>San Juan genera con agua y sol</h1>
+      <a class="firma" href="https://www.dams.com.ar" target="_blank" rel="noopener">Un desarrollo de <img src="dams.png" alt="DAMS" width="50" height="17"></a>
       <p><span><i class="a"></i>Central hidroeléctrica</span><span><i class="s"></i>Parque solar</span><span><i class="f"></i>Río San Juan</span><br>El anillo de cada símbolo marca cuánto genera sobre lo instalado.</p>
     </div>
     <div class="capas">
